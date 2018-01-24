@@ -1,0 +1,1 @@
+python ..\..\test.py -v --args="-Id:\devel\notes" "d:\devel\notes\funcs"

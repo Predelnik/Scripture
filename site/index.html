@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>API Documentation</title>
+    <link href="shared/css/documentation.css" media="screen" rel="stylesheet" type="text/css"> 
+    <link href="shared/css/pygments.css" media="screen" rel="stylesheet" type="text/css"> 
+    <link href="css/style.css" media="screen" rel="stylesheet" type="text/css"> 
+    <script src="shared/js/jquery.js" type="text/javascript"></script> 
+    <script src="js/json2.js" type="text/javascript"></script> 
+    <script src="js/underscore.js" type="text/javascript"></script> 
+    <script src="js/backbone.js" type="text/javascript"></script> 
+    <script src="js/scripture.js" type="text/javascript"></script>
+  </head>
+  <body class="documentation">
+        <script type="text/template" id="file-list-template">
+            <h3><a href="#">Files</a></h3>
+            <ul class="hidden">
+        <% _.map(files, function(file_data, file_name) { %>
+        <li>
+          <a target="github" href="whatever"><%= file_name %></a>
+        </li>
+        <% }) %>
+            </ul>
+         </script>
+         <div id="content" class="content"></div>
+         <div class="sidebar-module">
+            <ul class="subgroup" id="file-list">
+              <li><h3><a>Loading...</a></h3></li>
+            </ul>
+          </div>
+  </body>
+</html>
