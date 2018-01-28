@@ -1,10 +1,10 @@
 $(function () {
 
-  var structModel = Backbone.Model.extend ({
+  var structModel = Backbone.Model.extend({
     initialize: function () {
       var dataModel = this.get('dataModel')
       this.listenTo(dataModel, 'change:data', this.extract)
-      this.extract ()
+      this.extract()
     },
 
     extract: function () {
@@ -24,7 +24,7 @@ $(function () {
 
     render: function () {
       var data = this.model.get('data')
-      this.$el.html (this.template (data))
+      this.$el.html(this.template(data))
       return this
     },
   })
@@ -33,26 +33,42 @@ $(function () {
     initialize: function () {
       var dataModel = this.get('dataModel')
       this.listenTo(dataModel, 'change:data', this.extract)
-      this.extract ()
+      this.extract()
     },
 
-    genSignature: function (name, data) {
-      return data.returns.type + ' ' + name + '('+_.map (data.args, function(argData)
-      { 
-        return argData.type + (argData.type.charAt (argData.type.length - 1) != '*' ? ' ' : '') + argData.name}).join (', ') + ')'
-      },
+    genSignature: function (name, data, structData) {
+      return data.returns.type + ' ' + name + '(' + _.map(data.args, function (argData) {
+        argType = argData.type
+        lastChar = argType.charAt(argType.length - 1)
+        isPointer = (lastChar == '*')
+        argHtmlStr = argType + (isPointer ? '' : ' ')
+        if (!isPointer) {
+          if (argType in structData)
+            argHtmlStr = '<a href=#struct/' + argType + '>' + argHtmlStr + '</a>'
+        }
+        else {
+          var pointedType = argType.substring(0, argType.length - 2)
+          if (pointedType in structData)
+            argHtmlStr = '<a href=#struct/' + pointedType + '>' + pointedType + '</a>' + ' *'
+        }
+
+        return argHtmlStr + argData.name
+      }).join(', ') + ')'
+    },
 
     extract: function () {
       var dataModel = this.get('dataModel')
       var data = dataModel.get('data')
       var fileData = data.files
       var funcData = data.functions
+      var structData = data.structs
       var fileName = this.get('fileName')
       var funcList = fileData[fileName]['functions']
-      var data = _.map(funcList, function (functionName) { 
+      var data = _.map(funcList, function (functionName) {
         var functionData = funcData[functionName]
-        var signature = this.genSignature (functionName, functionData)
-        return { name: functionName, data: functionData, signature: signature}; }, this)
+        var signature = this.genSignature(functionName, functionData, structData)
+        return { name: functionName, data: functionData, signature: signature };
+      }, this)
       this.set('data', { data: data })
     },
   })
@@ -66,8 +82,8 @@ $(function () {
 
     render: function () {
       var data = this.model.get('data')
-      
-      this.$el.html (this.template (data))
+
+      this.$el.html(this.template(data))
       return this
     },
   })
@@ -80,7 +96,7 @@ $(function () {
 
 
     extract: function () {
-      var data = this.get('dataModel').get ('data')
+      var data = this.get('dataModel').get('data')
       var files = data['files']
       this.set('data', { files: files })
     },
@@ -92,7 +108,7 @@ $(function () {
       'click h3': 'toggleList',
     },
 
-    toggleList: function(e) {
+    toggleList: function (e) {
       $(e.currentTarget).next().toggle(100)
       return false
     },
@@ -158,7 +174,7 @@ $(function () {
   })
 
   var Workspace = Backbone.Router.extend({
-    initialize: function(o) {
+    initialize: function (o) {
       this.dataModel = o.dataModel
       this.mainView = o.mainView
     },
@@ -166,25 +182,26 @@ $(function () {
     routes: {
       "": "index",
       "fileFunctions/:fileName": "fileFunctions"
-      },
-      index: function () {
-      },
+    },
+    index: function () {
+    },
 
-      fileFunctions: function (fileName) {
-        var self = this
-        var model = new FileFunctionListModel({ fileName: fileName, dataModel: self.dataModel })
-        var view = new FunctionListView({ model: model })
-        self.mainView.setActive(view)
-      }
+    fileFunctions: function (fileName) {
+      var self = this
+      var model = new FileFunctionListModel({ fileName: fileName, dataModel: self.dataModel })
+      var view = new FunctionListView({ model: model })
+      self.mainView.setActive(view)
     }
+  }
   )
 
   var dataModel = new DataModel();
   var mainView = new MainView();
   var fileList = new FileListModel({ dataModel: dataModel });
   var fileListView = new FileListView({ model: fileList });
-  var router = new Workspace({mainView : mainView, dataModel : dataModel})
+  var router = new Workspace({ mainView: mainView, dataModel: dataModel })
 
-  dataModel.once('change:data', function() {
-    Backbone.history.start()})
+  dataModel.once('change:data', function () {
+    Backbone.history.start()
+  })
 })
