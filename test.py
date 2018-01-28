@@ -30,8 +30,8 @@ def strip_line(line):
 data = {
 'functions' : {},
 'files' : {},
-'types' : {},
 'vars' : {},
+'structs' : {},
 }
 
 def extract_function_args(node, info): # TODO: support comments for each argument
@@ -43,31 +43,27 @@ def extract_function_args(node, info): # TODO: support comments for each argumen
 			arg_info['type'] = child.type.spelling
 			info['args'].append (arg_info)
 
+def comment_to_lines(comment):
+	comment = comment.replace ('\r\n', '\n')
+	lines = comment.split ('\n')
+	lines = [strip_line(line) for line in lines]
+	return lines
+
+def extract_by_pattern(line, dict, target, pattern):
+	m = re.match(pattern, line)
+	if m:
+		dict[target] = m.groups(1)
+
 def extract_function(node):
-	verbose_print ('Parsing function:\n {}'.format (node.spelling))
+	verbose_print ('Parsing function: {}'.format (node.spelling))
 	comment = node.raw_comment
 	info = {}
 	if comment:
-		comment = comment.replace ('\r\n', '\n')
-		lines = comment.split ('\n')
-		lines = [strip_line(line) for line in lines]
 		explanation = []
-		for line in lines:
-			m = re.match('address: (.*)', line)
-			if m:
-				info['address'] = m.groups(1)
-				continue
-
-			m = re.match('PSX ref: (.*)', line)
-			if m:
-				info['psx_ref'] = m.groups(1)
-				continue
-				
-			m = re.match('PSX def: (.*)', line)
-			if m:
-				info['psx_def'] = m.groups(1)
-				continue
-			
+		for line in comment_to_lines (comment):
+			extract_by_pattern(line, info, 'address', 'address: (.*)')
+			extract_by_pattern(line, info, 'psx_ref', 'PSX ref: (.*)')
+			extract_by_pattern(line, info, 'psx_def', 'PSX def: (.*)')
 			if line:
 				explanation.append (line)
 		info['explanation'] = '\n'.join (explanation)
@@ -76,20 +72,52 @@ def extract_function(node):
 	info['returns'] = {'type' : node.result_type.spelling}
 	data['functions'][node.spelling] = info
 
+def extract_struct_members(node, info): # TODO: support comments for each argument
+	info['members'] = []
+	for child in node.get_children():
+		member_info = {}
+		member_info['name'] = child.spelling
+		member_info['type'] = child.type.spelling
+		member_info['comment'] = child.raw_comment
+		info['members'].append (member_info)
+
+def extract_struct(node, name):
+	verbose_print ('Parsing struct: {}'.format (name))
+	info = {}
+	info['explanation'] = node.raw_comment # TODO: extract PCX def
+	extract_struct_members(node, info)
+	data['structs'][name] = info
+
 def extract(node, filepath, short_filename):
 	if str (node.location.file) == filepath: # not parsing cursors from other headers
 		if node.kind == CursorKind.FUNCTION_DECL:
 			extract_function(node)
+			if not short_filename in data['files']:
+				data['files'][short_filename] = {}
+			if not 'functions' in data['files'][short_filename]:
+				data['files'][short_filename]['functions'] = []
 			data['files'][short_filename]['functions'].append (node.spelling)
-
+			return
+		elif node.kind == CursorKind.STRUCT_DECL:
+			if node.spelling:
+				extract_struct(node, node.spelling)
+			return
+		elif node.kind == CursorKind.TYPEDEF_DECL:
+			children = node.get_children()
+			try:
+				first_child = next(children)
+			except StopIteration:
+				return
+			# resolving instantly typedef structs just as normal structs
+			if first_child.kind == CursorKind.STRUCT_DECL:
+				extract_struct(first_child, node.spelling)
+				return
 	for child in node.get_children():
 		extract(child, filepath, short_filename)
 
 index = clang.cindex.Index.create()
 for root, dirnames, filenames in os.walk(options.target_path):
 	for filename in filenames:
-		data['files'][filename] = {}
-		data['files'][filename]['functions'] = []
 		if not filename.endswith (('.cpp', '.h')):
 			continue
 		full_path = os.path.join (root, filename)

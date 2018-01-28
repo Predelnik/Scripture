@@ -1,5 +1,34 @@
 $(function () {
 
+  var structModel = Backbone.Model.extend ({
+    initialize: function () {
+      var dataModel = this.get('dataModel')
+      this.listenTo(dataModel, 'change:data', this.extract)
+      this.extract ()
+    },
+
+    extract: function () {
+      var dataModel = this.get('dataModel')
+      var data = dataModel.get('data')
+      var structName = this.get('structName')
+      this.set('data', { data: data.structs[structName] })
+    },
+  })
+
+  var structView = Backbone.View.extend({
+    template: _.template($('#struct-template').html()),
+
+    initialize: function () {
+      this.listenTo(this.model, 'change:data', this.render)
+    },
+
+    render: function () {
+      var data = this.model.get('data')
+      this.$el.html (this.template (data))
+      return this
+    },
+  })
+
   var FileFunctionListModel = Backbone.Model.extend({
     initialize: function () {
       var dataModel = this.get('dataModel')
