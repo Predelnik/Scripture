@@ -1,86 +1,146 @@
 $(function () {
-var FileListModel = Backbone.Model.extend({
-  initialize: function() {
-    var dataModel = this.get('dataModel')
-    this.listenTo(dataModel, 'change:files', this.extract)
-  },
+
+  var FileFunctionListModel = Backbone.Model.extend({
+    initialize: function () {
+      var dataModel = this.get('dataModel')
+      this.listenTo(dataModel, 'change:data', this.extract)
+      this.extract ()
+    },
 
 
-  extract: function() {
-    var dataModel = this.get('dataModel')
-    var files = dataModel.get('files')
-    this.set('data', {files: files})
-  },
-})
+    extract: function () {
+      var dataModel = this.get('dataModel')
+      var data = dataModel.get('data')
+      var fileData = data.files
+      var funcData = data.functions
+      var fileName = this.get('fileName')
+      var funcList = fileData[fileName]['functions']
+      var data = _.map(funcList, function (functionName) { return { name: functionName, data: funcData[funcList] }; })
+      this.set('data', { data: data })
+    },
+  })
 
-var FileListView = Backbone.View.extend({
-  el: $('#file-list'),
+  var FunctionListView = Backbone.View.extend({
+    el: $('#file-list'),
 
-  template:  _.template($('#file-list-template').html()),
+    template: _.template($('#function-list-template').html()),
 
-  initialize: function() {
-    this.listenTo(this.model, 'change:data', this.render)
-  },
+    initialize: function () {
+      this.listenTo(this.model, 'change:data', this.render)
+    },
 
-  events: {
-    'click h3': 'toggleList',
-  },
+    render: function () {
+      var data = this.model.get('data')     
+      this.el = this.template (data)
+      return this
+    },
+  })
 
-  render: function() {
-    var data = this.model.get('data')
-    var menu = $(this.template({files: data.files}))
-    this.$el.html(menu)
-    return this
-  },
+  var FileListModel = Backbone.Model.extend({
+    initialize: function () {
+      var dataModel = this.get('dataModel')
+      this.listenTo(dataModel, 'change:data', this.extract)
+    },
 
-  toggleList: function(e) {
-    $(e.currentTarget).next().toggle(100)
-    return false
-  },
-})
 
-var DataModel = Backbone.Model.extend({
-  initialize: function() {
-    this.load()
-  },
-  load: function() {   
-    $.getJSON('../data/functions.json').then(function(data) {
-      dataModel.set({functions: data})
-    })
-    $.getJSON ('../data/files.json').then ((function(data) {
-      dataModel.set({files: data})
-    }))
-  },
-})
+    extract: function () {
+      var data = this.get('dataModel').get ('data')
+      var files = data['files']
+      this.set('data', { files: files })
+    },
+  })
 
-var MainView = Backbone.View.extend({
-  el: $('#content'),
+  var FileListView = Backbone.View.extend({
+    el: $('#file-list'),
 
-  setActive: function (view) {
-    view.render()
+    template: _.template($('#file-list-template').html()),
 
-    if (this.activeView) {
-      this.stopListening()
-      this.activeView.remove()
+    initialize: function () {
+      this.listenTo(this.model, 'change:data', this.render)
+    },
+
+    events: {
+      'click h3': 'toggleList',
+    },
+
+    render: function () {
+      var data = this.model.get('data')
+      var menu = $(this.template({ files: data.files }))
+      this.$el.html(menu)
+      return this
+    },
+
+    toggleList: function (e) {
+      $(e.currentTarget).next().toggle(100)
+      return false
+    },
+  })
+
+  var DataModel = Backbone.Model.extend({
+    initialize: function () {
+      this.load()
+    },
+    load: function () {
+      $.getJSON('../data/data.json').then(function (data) {
+        dataModel.set({ data: data })
+      })
+    },
+  })
+
+  var MainView = Backbone.View.extend({
+    el: $('#content'),
+
+    setActive: function (view) {
+      view.render()
+
+      if (this.activeView) {
+        this.stopListening()
+        this.activeView.remove()
+      }
+
+      this.activeView = view
+      // make sure we know when the view wants to render again
+      this.listenTo(view, 'redraw', this.render)
+
+      this.$el.html(view.el)
+
+      // move back to the top when we switch views
+      document.body.scrollTop = document.documentElement.scrollTop = 0;
+    },
+
+    render: function () {
+      this.$el.html(this.activeView.el)
+    },
+  })
+
+  var Workspace = Backbone.Router.extend({
+    initialize: function(o) {
+      this.dataModel = o.dataModel
+      this.mainView = o.mainView
+    },
+
+    routes: {
+      "": "index",
+      "fileFunctions/:fileName": "fileFunctions"
+      },
+      index: function () {
+      },
+
+      fileFunctions: function (fileName) {
+        var self = this
+        var model = new FileFunctionListModel({ fileName: fileName, dataModel: self.dataModel })
+        var view = new FunctionListView({ model: model })
+        self.mainView.setActive(view)
+      }
     }
-
-    this.activeView = view
-    // make sure we know when the view wants to render again
-    this.listenTo(view, 'redraw', this.render)
-
-    this.$el.html(view.el)
-
-    // move back to the top when we switch views
-    document.body.scrollTop = document.documentElement.scrollTop = 0;
-  },
-
-  render: function () {
-    this.$el.html(this.activeView.el)
-  },
-})
+  )
 
   var dataModel = new DataModel();
   var mainView = new MainView();
-  var fileList = new FileListModel({dataModel: dataModel});
-  var fileListView = new FileListView({model: fileList});
+  var fileList = new FileListModel({ dataModel: dataModel });
+  var fileListView = new FileListView({ model: fileList });
+  var router = new Workspace({mainView : mainView, dataModel : dataModel})
+
+  dataModel.once('change:data', function() {
+    Backbone.history.start()})
 })

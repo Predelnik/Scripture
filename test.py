@@ -27,10 +27,12 @@ def strip_line(line):
 		i += 1
 	return line[i:].strip()
 
-functions = {}
-files = {}
-types = {}
-vars = {}
+data = {
+'functions' : {},
+'files' : {},
+'types' : {},
+'vars' : {},
+}
 
 def extract_function_args(node, info): # TODO: support comments for each argument
 	info['args'] = []
@@ -70,13 +72,13 @@ def extract_function(node):
 				explanation.append (line)
 		info['explanation'] = '\n'.join (explanation)
 	extract_function_args(node, info)
-	functions[node.spelling] = info
+	data['functions'][node.spelling] = info
 
 def extract(node, filepath, short_filename):
 	if str (node.location.file) == filepath: # not parsing cursors from other headers
 		if node.kind == CursorKind.FUNCTION_DECL:
 			extract_function(node)
-			files[short_filename]['functions'].append (node.spelling)
+			data['files'][short_filename]['functions'].append (node.spelling)
 
 	for child in node.get_children():
 		extract(child, filepath, short_filename)
@@ -84,13 +86,12 @@ def extract(node, filepath, short_filename):
 index = clang.cindex.Index.create()
 for root, dirnames, filenames in os.walk(options.target_path):
 	for filename in filenames:
-		files[filename] = {}
-		files[filename]['functions'] = []
+		data['files'][filename] = {}
+		data['files'][filename]['functions'] = []
 		if not filename.endswith (('.cpp', '.h')):
 			continue
 		full_path = os.path.join (root, filename)
 		verbose_print('Parsing {}...'.format(os.path.relpath (full_path, options.target_path)))
 		tu = index.parse(full_path, options.args.split (' ') if options.args else None, options = TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD )
 		extract (tu.cursor, full_path, filename)
-json.dump (functions, open ('functions.json', 'w'))
-json.dump (files, open ('files.json', 'w'))
+json.dump (data, open ('data.json', 'w'))
