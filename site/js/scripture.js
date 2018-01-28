@@ -7,6 +7,11 @@ $(function () {
       this.extract ()
     },
 
+    genSignature: function (name, data) {
+      return data.returns.type + ' ' + name + '('+_.map (data.args, function(argData)
+      { 
+        return argData.type + (argData.type.charAt (argData.type.length - 1) != '*' ? ' ' : '') + argData.name}).join (', ') + ')'
+      },
 
     extract: function () {
       var dataModel = this.get('dataModel')
@@ -15,7 +20,10 @@ $(function () {
       var funcData = data.functions
       var fileName = this.get('fileName')
       var funcList = fileData[fileName]['functions']
-      var data = _.map(funcList, function (functionName) { return { name: functionName, data: funcData[funcList] }; })
+      var data = _.map(funcList, function (functionName) { 
+        var functionData = funcData[functionName]
+        var signature = this.genSignature (functionName, functionData)
+        return { name: functionName, data: functionData, signature: signature}; }, this)
       this.set('data', { data: data })
     },
   })
@@ -71,7 +79,6 @@ $(function () {
     },
 
     render: function () {
-      console.log ("FileListView.Render()")
       var data = this.model.get('data')
       var menu = $(this.template({ files: data.files }))
       this.$el.html(menu)

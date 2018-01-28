@@ -17,7 +17,8 @@
 <body class="documentation">
     <script type="text/template" id="function-list-template">
       <% _.each(data, function(func_data) { %>
-        <h3><%= func_data.name %></h3>
+        <h2><%= func_data.data.address %></h2>
+        <h4><%= func_data.signature %></h3>
       <% }) %>
 </script>
   <script type="text/template" id="file-list-template">

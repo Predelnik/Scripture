@@ -72,6 +72,8 @@ def extract_function(node):
 				explanation.append (line)
 		info['explanation'] = '\n'.join (explanation)
 	extract_function_args(node, info)
+	 # TODO: support comments for return value
+	info['returns'] = {'type' : node.result_type.spelling}
 	data['functions'][node.spelling] = info
 
 def extract(node, filepath, short_filename):
