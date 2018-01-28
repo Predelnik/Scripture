@@ -22,8 +22,8 @@
 </script>
   <script type="text/template" id="file-list-template">
             <h3><a href="#">Files</a></h3>
-            <ul class="hidden">
-        <% _.map(files, function(file_data, file_name) { %>
+            <ul>
+        <% _.each(files, function(file_data, file_name) { %>
         <li>
           <a target="github" href="#fileFunctions/<%= file_name %>"><%= file_name %></a>
         </li>
@@ -35,6 +35,7 @@
     <div id="js-help-sidebar" class="sidebar-shell">
         <div class="sidebar-module">
           <ul class="subgroup" id="file-list">
+            <li><h3><a>Loading...</a></h3></li>
           </ul>
         </div> <!-- /sidebar-module -->
       </div><!-- /sidebar-shell -->

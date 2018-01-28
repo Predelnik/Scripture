@@ -21,8 +21,6 @@ $(function () {
   })
 
   var FunctionListView = Backbone.View.extend({
-    el: $('#file-list'),
-
     template: _.template($('#function-list-template').html()),
 
     initialize: function () {
@@ -30,8 +28,9 @@ $(function () {
     },
 
     render: function () {
-      var data = this.model.get('data')     
-      this.el = this.template (data)
+      var data = this.model.get('data')
+      
+      this.$el.html (this.template (data))
       return this
     },
   })
@@ -52,6 +51,14 @@ $(function () {
 
   var FileListView = Backbone.View.extend({
     el: $('#file-list'),
+    events: {
+      'click h3': 'toggleList',
+    },
+
+    toggleList: function(e) {
+      $(e.currentTarget).next().toggle(100)
+      return false
+    },
 
     template: _.template($('#file-list-template').html()),
 
@@ -64,6 +71,7 @@ $(function () {
     },
 
     render: function () {
+      console.log ("FileListView.Render()")
       var data = this.model.get('data')
       var menu = $(this.template({ files: data.files }))
       this.$el.html(menu)
