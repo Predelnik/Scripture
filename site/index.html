@@ -15,6 +15,12 @@
 </head>
 
 <script type="text/template" id="struct-template">
+  <h1>Struct <%= structName %></h1>
+  <table>
+  <% _.each(structData.members, function(member) { %>
+    <tr><td><%= member.type %> <%= member.name %></td></tr>
+  <% }) %>
+  </table>
 </script>
 
 <script type="text/template" id="function-list-template">

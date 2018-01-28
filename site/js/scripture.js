@@ -11,7 +11,7 @@ $(function () {
       var dataModel = this.get('dataModel')
       var data = dataModel.get('data')
       var structName = this.get('structName')
-      this.set('data', { data: data.structs[structName] })
+      this.set('data', { structName: structName, structData: data.structs[structName] })
     },
   })
 
@@ -181,7 +181,8 @@ $(function () {
 
     routes: {
       "": "index",
-      "fileFunctions/:fileName": "fileFunctions"
+      "fileFunctions/:fileName": "fileFunctions",
+      "struct/:structName": "struct"
     },
     index: function () {
     },
@@ -190,6 +191,13 @@ $(function () {
       var self = this
       var model = new FileFunctionListModel({ fileName: fileName, dataModel: self.dataModel })
       var view = new FunctionListView({ model: model })
+      self.mainView.setActive(view)
+    },
+
+    struct: function (structName) {
+      var self = this
+      var model = new structModel({ dataModel: self.dataModel, structName : structName })
+      var view = new structView ({ model: model })
       self.mainView.setActive(view)
     }
   }
