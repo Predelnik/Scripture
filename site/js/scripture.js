@@ -1,5 +1,26 @@
 $(function () {
 
+  var genSignature = function (functionName, data, structData, includeLink) {
+    if (includeLink)
+      functionName = '<a href=#function/' + functionName + '>' + functionName + '</a>'
+    return data.returns.type + ' ' + functionName + '(' + _.map(data.args, function (argData) {
+      argType = argData.type
+      lastChar = argType.charAt(argType.length - 1)
+      isPointer = (lastChar == '*')
+      argHtmlStr = argType + (isPointer ? '' : ' ')
+      if (!isPointer) {
+        if (argType in structData)
+          argHtmlStr = '<a href=#struct/' + argType + '>' + argHtmlStr + '</a>'
+      }
+      else {
+        var pointedType = argType.substring(0, argType.length - 2)
+        if (pointedType in structData)
+          argHtmlStr = '<a href=#struct/' + pointedType + '>' + pointedType + '</a>' + ' *'
+      }
+      return argHtmlStr + argData.name
+    }).join(', ') + ')'
+  }
+
   var structModel = Backbone.Model.extend({
     initialize: function () {
       var dataModel = this.get('dataModel')
@@ -29,31 +50,41 @@ $(function () {
     },
   })
 
-  var FileFunctionListModel = Backbone.Model.extend({
+  var functionModel = Backbone.Model.extend({
     initialize: function () {
       var dataModel = this.get('dataModel')
       this.listenTo(dataModel, 'change:data', this.extract)
       this.extract()
     },
 
-    genSignature: function (name, data, structData) {
-      return data.returns.type + ' ' + name + '(' + _.map(data.args, function (argData) {
-        argType = argData.type
-        lastChar = argType.charAt(argType.length - 1)
-        isPointer = (lastChar == '*')
-        argHtmlStr = argType + (isPointer ? '' : ' ')
-        if (!isPointer) {
-          if (argType in structData)
-            argHtmlStr = '<a href=#struct/' + argType + '>' + argHtmlStr + '</a>'
-        }
-        else {
-          var pointedType = argType.substring(0, argType.length - 2)
-          if (pointedType in structData)
-            argHtmlStr = '<a href=#struct/' + pointedType + '>' + pointedType + '</a>' + ' *'
-        }
+    extract: function () {
+      var dataModel = this.get('dataModel')
+      var data = dataModel.get('data')
+      var name = this.get('name')
+      var functionData = data.functions[name]
+      this.set('data', { name: name, data: functionData, signature: genSignature (name, functionData, data.structs, false)})
+    },
+  })
 
-        return argHtmlStr + argData.name
-      }).join(', ') + ')'
+  var functionView = Backbone.View.extend({
+    template: _.template($('#function-template').html()),
+
+    initialize: function () {
+      this.listenTo(this.model, 'change:data', this.render)
+    },
+
+    render: function () {
+      var data = this.model.get('data')
+      this.$el.html(this.template(data))
+      return this
+    },
+  })
+
+  var FileFunctionListModel = Backbone.Model.extend({
+    initialize: function () {
+      var dataModel = this.get('dataModel')
+      this.listenTo(dataModel, 'change:data', this.extract)
+      this.extract()
     },
 
     extract: function () {
@@ -65,8 +96,8 @@ $(function () {
       var fileName = this.get('fileName')
       var funcList = fileData[fileName]['functions']
       var data = _.map(funcList, function (functionName) {
-        var functionData = funcData[functionName]
-        var signature = this.genSignature(functionName, functionData, structData)
+      var functionData = funcData[functionName]
+      var signature = genSignature(functionName, functionData, structData, true)
         return { name: functionName, data: functionData, signature: signature };
       }, this)
       this.set('data', { data: data })
@@ -182,7 +213,8 @@ $(function () {
     routes: {
       "": "index",
       "fileFunctions/:fileName": "fileFunctions",
-      "struct/:structName": "struct"
+      "struct/:structName": "struct",
+      "function/:functionName": "function"
     },
     index: function () {
     },
@@ -198,6 +230,13 @@ $(function () {
       var self = this
       var model = new structModel({ dataModel: self.dataModel, structName : structName })
       var view = new structView ({ model: model })
+      self.mainView.setActive(view)
+    },
+
+    function: function (functionName) {
+      var self = this
+      var model = new functionModel({ dataModel: self.dataModel, name : functionName })
+      var view = new functionView ({ model: model })
       self.mainView.setActive(view)
     }
   }

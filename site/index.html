@@ -23,6 +23,19 @@
   </table>
 </script>
 
+<script type="text/template" id="function-template">
+  <h1>Function <%= name %></h1>
+  <h3> <%= signature %> </h3>
+  <p><%= data.explanation %></p>
+  <p>
+  <table>
+      <tr><td>Address:</td><td><%= data.address %></td></tr>
+      <% if (data.psx_ref) { %> <tr><td>PSX Ref:</td><td><%= data.psx_ref %> </td></tr> <% } %>
+      <% if (data.psx_def) { %><tr><td>PSX Def:</td><td><%= data.psx_def %></td></tr> <% } %>
+    </table>
+  </p>
+</script>
+
 <script type="text/template" id="function-list-template">
   <% _.each(data, function(func_data) { %>
     <h2><%= func_data.data.address %></h2>

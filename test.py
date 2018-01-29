@@ -53,6 +53,8 @@ def extract_by_pattern(line, dict, target, pattern):
 	m = re.match(pattern, line)
 	if m:
 		dict[target] = m.groups(1)
+		return True
+	return False
 
 def extract_function(node):
 	verbose_print ('Parsing function: {}'.format (node.spelling))
@@ -61,9 +63,12 @@ def extract_function(node):
 	if comment:
 		explanation = []
 		for line in comment_to_lines (comment):
-			extract_by_pattern(line, info, 'address', 'address: (.*)')
-			extract_by_pattern(line, info, 'psx_ref', 'PSX ref: (.*)')
-			extract_by_pattern(line, info, 'psx_def', 'PSX def: (.*)')
+			if extract_by_pattern(line, info, 'address', 'address: (.*)'):
+				continue
+			if extract_by_pattern(line, info, 'psx_ref', 'PSX ref: (.*)'):
+				continue
+			if extract_by_pattern(line, info, 'psx_def', 'PSX def: (.*)'):
+				continue
 			if line:
 				explanation.append (line)
 		info['explanation'] = '\n'.join (explanation)
