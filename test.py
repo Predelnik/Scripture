@@ -76,6 +76,7 @@ def extract_function(node):
 	 # TODO: support comments for return value
 	info['returns'] = {'type' : node.result_type.spelling}
 	data['functions'][node.spelling] = info
+	return data['functions'][node.spelling]
 
 def extract_struct_members(node, info): # TODO: support comments for each argument
 	info['members'] = []
@@ -96,7 +97,8 @@ def extract_struct(node, name):
 def extract(node, filepath, short_filename):
 	if str (node.location.file) == filepath: # not parsing cursors from other headers
 		if node.kind == CursorKind.FUNCTION_DECL:
-			extract_function(node)
+			func_data = extract_function(node)
+			func_data['file_name'] = short_filename
 			if not short_filename in data['files']:
 				data['files'][short_filename] = {}
 			if not 'functions' in data['files'][short_filename]:

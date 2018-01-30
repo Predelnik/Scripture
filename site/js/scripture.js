@@ -119,7 +119,7 @@ $(function () {
     },
   })
 
-  var FileListModel = Backbone.Model.extend({
+  var MainMenuModel = Backbone.Model.extend({
     initialize: function () {
       var dataModel = this.get('dataModel')
       this.listenTo(dataModel, 'change:data', this.extract)
@@ -129,12 +129,13 @@ $(function () {
     extract: function () {
       var data = this.get('dataModel').get('data')
       var files = data['files']
-      this.set('data', { files: files })
+      var structs = data['structs']
+      this.set('data', { files: files, structs: structs})
     },
   })
 
-  var FileListView = Backbone.View.extend({
-    el: $('#file-list'),
+  var MainMenuView = Backbone.View.extend({
+    el: $('#main-menu'),
     events: {
       'click h3': 'toggleList',
     },
@@ -144,7 +145,7 @@ $(function () {
       return false
     },
 
-    template: _.template($('#file-list-template').html()),
+    template: _.template($('#main-menu-template').html()),
 
     initialize: function () {
       this.listenTo(this.model, 'change:data', this.render)
@@ -156,7 +157,7 @@ $(function () {
 
     render: function () {
       var data = this.model.get('data')
-      var menu = $(this.template({ files: data.files }))
+      var menu = $(this.template(data))
       this.$el.html(menu)
       return this
     },
@@ -244,8 +245,8 @@ $(function () {
 
   var dataModel = new DataModel();
   var mainView = new MainView();
-  var fileList = new FileListModel({ dataModel: dataModel });
-  var fileListView = new FileListView({ model: fileList });
+  var fileList = new MainMenuModel({ dataModel: dataModel });
+  var fileListView = new MainMenuView({ model: fileList });
   var router = new Workspace({ mainView: mainView, dataModel: dataModel })
 
   dataModel.once('change:data', function () {
