@@ -18,7 +18,7 @@
   <h1>Struct <%= structName %></h1>
   <table>
   <% _.each(structData.members, function(member) { %>
-    <tr><td><%= member.type %> <%= member.name %></td></tr>
+    <tr><td><%= member.typeHtml %> <%= member.name %></td></tr>
   <% }) %>
   </table>
 </script>

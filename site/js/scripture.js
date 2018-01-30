@@ -1,23 +1,23 @@
 $(function () {
 
-  var genSignature = function (functionName, data, structData, includeLink) {
+  var typeNameToHtml = function (typeName, structs) {
+      lastChar = typeName.charAt(typeName.length - 1)
+      var re = /([^\s\[\]*]+)(\s*(?:\[\d+\]|\*))?/g
+      var match = re.exec (typeName)
+      var name = match[1], suffix = match[2] ? match[2] : ''
+      mbSpace = suffix ? '' : ' '
+      if (name in structs)
+        return '<a href=#struct/' + name + '>' + name + '</a>' + suffix + mbSpace
+      
+      return typeName + mbSpace
+  }
+
+  var genSignature = function (functionName, data, structs, includeLink) {
     if (includeLink)
       functionName = '<a href=#function/' + functionName + '>' + functionName + '</a>'
     return data.returns.type + ' ' + functionName + '(' + _.map(data.args, function (argData) {
       argType = argData.type
-      lastChar = argType.charAt(argType.length - 1)
-      isPointer = (lastChar == '*')
-      argHtmlStr = argType + (isPointer ? '' : ' ')
-      if (!isPointer) {
-        if (argType in structData)
-          argHtmlStr = '<a href=#struct/' + argType + '>' + argHtmlStr + '</a>'
-      }
-      else {
-        var pointedType = argType.substring(0, argType.length - 2)
-        if (pointedType in structData)
-          argHtmlStr = '<a href=#struct/' + pointedType + '>' + pointedType + '</a>' + ' *'
-      }
-      return argHtmlStr + argData.name
+      return typeNameToHtml (argType, structs) + argData.name
     }).join(', ') + ')'
   }
 
@@ -32,7 +32,11 @@ $(function () {
       var dataModel = this.get('dataModel')
       var data = dataModel.get('data')
       var structName = this.get('structName')
-      this.set('data', { structName: structName, structData: data.structs[structName] })
+      var structData = data.structs[structName]
+      _.each (structData.members, function (member){
+        member.typeHtml = typeNameToHtml (member.type, data.structs)
+      })
+      this.set('data', { structName: structName, structData: structData})
     },
   })
 
