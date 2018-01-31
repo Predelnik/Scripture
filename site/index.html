@@ -23,6 +23,15 @@
   </table>
 </script>
 
+<script type="text/template" id="enum-template">
+  <h1>Enum <%= enumName %></h1>
+  <table>
+  <% _.each(enumData.members, function(member) { %>
+    <tr><td><%= member.name %></td><td>=</td><td><%= member.value %></td></tr>
+  <% }) %>
+  </table>
+</script>
+
 <script type="text/template" id="function-template">
   <h1>Function <%= name %></h1>
   <h3> <%= signature %> </h3>
@@ -49,18 +58,26 @@
         <ul>
     <% _.each(files, function(file_data, file_name) { %>
     <li>
-      <a target="github" href="#fileFunctions/<%= file_name %>"><%= file_name %></a>
+      <a href="#fileFunctions/<%= file_name %>"><%= file_name %></a>
     </li>
     <% }) %>
-        </ul>
+       </ul>
     <h3><a href="#">Structs</a></h3>
     <ul>
     <% _.each(structs, function(struct_data, struct_name) { %>
     <li>
-      <a target="github" href="#struct/<%= struct_name %>"><%= struct_name %></a>
+      <a href="#struct/<%= struct_name %>"><%= struct_name %></a>
     </li>
     <% }) %>
-        </ul>
+  </ul>
+    <h3><a href="#">Enums</a></h3>
+    <ul>
+    <% _.each(enums, function(enum_data, enum_name) { %>
+    <li>
+      <a href="#enum/<%= enum_name %>"><%= enum_name %></a>
+    </li>
+    <% }) %>
+    </ul>
 </script>
 
 <body class="documentation">

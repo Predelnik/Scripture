@@ -32,6 +32,7 @@ data = {
 'files' : {},
 'vars' : {},
 'structs' : {},
+'enums' : {},
 }
 
 def extract_function_args(node, info): # TODO: support comments for each argument
@@ -94,6 +95,22 @@ def extract_struct(node, name):
 	extract_struct_members(node, info)
 	data['structs'][name] = info
 
+def extract_enum_members(node, info): # TODO: support comments for each argument
+	info['members'] = []
+	for child in node.get_children():
+		member_info = {}
+		member_info['name'] = child.spelling
+		member_info['value'] = child.enum_value
+		member_info['comment'] = child.raw_comment
+		info['members'].append (member_info)
+
+def extract_enum(node, name):
+	verbose_print ('Parsing enum: {}'.format (name))
+	info = {}
+	info['explanation'] = node.raw_comment # TODO: extract PCX def
+	extract_enum_members(node, info)
+	data['enums'][name] = info
+
 def extract(node, filepath, short_filename):
 	if str (node.location.file) == filepath: # not parsing cursors from other headers
 		if node.kind == CursorKind.FUNCTION_DECL:
@@ -109,6 +126,9 @@ def extract(node, filepath, short_filename):
 			if node.spelling:
 				extract_struct(node, node.spelling)
 			return
+		elif node.kind == CursorKind.ENUM_DECL:
+			extract_enum(node, node.spelling)
+			return
 		elif node.kind == CursorKind.TYPEDEF_DECL:
 			children = node.get_children()
 			try:
@@ -118,6 +138,9 @@ def extract(node, filepath, short_filename):
 			# resolving instantly typedef structs just as normal structs
 			if first_child.kind == CursorKind.STRUCT_DECL:
 				extract_struct(first_child, node.spelling)
+				return
+			elif first_child.kind == CursorKind.ENUM_DECL:
+				extract_enum(first_child, node.spelling)
 				return
 	for child in node.get_children():
 		extract(child, filepath, short_filename)
