@@ -6,19 +6,13 @@ import os
 import fnmatch
 import re
 import json
+import multiprocessing
+from collections import *
 
 import sys
-print(sys.version)
 
-parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('-v', '--verbose', action="store_true", dest="verbose", help="Verbose output", default=False)
-parser.add_argument('--args',  dest='args', action="store", help='Arguments for clang')
-parser.add_argument('target_path', action="store", help='Target path')
-options = parser.parse_args()
-
-def verbose_print(str):
-	if options.verbose:
-		print(str)
+def dict_gen():
+	return defaultdict(dict)
 
 # strips forward slashes and spaces
 def strip_line(line):
@@ -26,14 +20,6 @@ def strip_line(line):
 	while i < len (line) and line[i] == '/':
 		i += 1
 	return line[i:].strip()
-
-data = {
-'functions' : {},
-'files' : {},
-'vars' : {},
-'structs' : {},
-'enums' : {},
-}
 
 def extract_function_args(node, info): # TODO: support comments for each argument
 	info['args'] = []
@@ -57,8 +43,7 @@ def extract_by_pattern(line, dict, target, pattern):
 		return True
 	return False
 
-def extract_function(node):
-	verbose_print ('Parsing function: {}'.format (node.spelling))
+def extract_function(data, node):
 	comment = node.raw_comment
 	info = {}
 	if comment:
@@ -88,8 +73,7 @@ def extract_struct_members(node, info): # TODO: support comments for each argume
 		member_info['comment'] = child.raw_comment
 		info['members'].append (member_info)
 
-def extract_struct(node, name):
-	verbose_print ('Parsing struct: {}'.format (name))
+def extract_struct(data, node, name):
 	info = {}
 	info['explanation'] = node.raw_comment # TODO: extract PCX def
 	extract_struct_members(node, info)
@@ -104,30 +88,28 @@ def extract_enum_members(node, info): # TODO: support comments for each argument
 		member_info['comment'] = child.raw_comment
 		info['members'].append (member_info)
 
-def extract_enum(node, name):
-	verbose_print ('Parsing enum: {}'.format (name))
+def extract_enum(data, node, name):
 	info = {}
 	info['explanation'] = node.raw_comment # TODO: extract PCX def
 	extract_enum_members(node, info)
 	data['enums'][name] = info
+	return data
 
-def extract(node, filepath, short_filename):
+def extract(data, node, filepath, short_filename):
 	if str (node.location.file) == filepath: # not parsing cursors from other headers
 		if node.kind == CursorKind.FUNCTION_DECL:
-			func_data = extract_function(node)
+			func_data = extract_function(data, node)
 			func_data['file_name'] = short_filename
-			if not short_filename in data['files']:
-				data['files'][short_filename] = {}
 			if not 'functions' in data['files'][short_filename]:
 				data['files'][short_filename]['functions'] = []
 			data['files'][short_filename]['functions'].append (node.spelling)
 			return
 		elif node.kind == CursorKind.STRUCT_DECL:
 			if node.spelling:
-				extract_struct(node, node.spelling)
+				extract_struct(data, node, node.spelling)
 			return
 		elif node.kind == CursorKind.ENUM_DECL:
-			extract_enum(node, node.spelling)
+			extract_enum(data, node, node.spelling)
 			return
 		elif node.kind == CursorKind.TYPEDEF_DECL:
 			children = node.get_children()
@@ -137,21 +119,56 @@ def extract(node, filepath, short_filename):
 				return
 			# resolving instantly typedef structs just as normal structs
 			if first_child.kind == CursorKind.STRUCT_DECL:
-				extract_struct(first_child, node.spelling)
+				extract_struct(data, first_child, node.spelling)
 				return
 			elif first_child.kind == CursorKind.ENUM_DECL:
-				extract_enum(first_child, node.spelling)
+				extract_enum(data, first_child, node.spelling)
 				return
 	for child in node.get_children():
-		extract(child, filepath, short_filename)
+		extract(data, child, filepath, short_filename)
+	return data
 
-index = clang.cindex.Index.create()
-for root, dirnames, filenames in os.walk(options.target_path):
-	for filename in filenames:
-		if not filename.endswith (('.cpp', '.h')):
-			continue
-		full_path = os.path.join (root, filename)
-		verbose_print('Parsing {}...'.format(os.path.relpath (full_path, options.target_path)))
-		tu = index.parse(full_path, options.args.split (' ') if options.args else None, options = TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD )
-		extract (tu.cursor, full_path, filename)
-json.dump (data, open ('data.json', 'w'))
+def extract_file (params):
+	data = defaultdict (dict_gen)
+	index = clang.cindex.Index.create()
+	tu = index.parse(params['full_path'], params['args'], options = TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD )
+	extract (data, tu.cursor, params['full_path'], params['short_filename'])
+	return data
+
+def merge_to_dict (target, source):
+	if isinstance(source, dict) or isinstance(source, defaultdict):
+		if target is None:
+			target = dict()
+		for key, value in source.items():
+			if key in target:
+				merge_to_dict (target[key], value)
+			else:
+				target[key] = value
+	else:
+		target = source
+
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	parser.add_argument('-v', '--verbose', action="store_true", dest="verbose", help="Verbose output", default=False)
+	parser.add_argument('--args',  dest='args', action="store", help='Arguments for clang')
+	parser.add_argument('target_path', action="store", help='Target path')
+	options = parser.parse_args()
+
+	file_name_list = []
+	args = options.args.split (' ') if options.args else None
+
+	for root, dirnames, filenames in os.walk(options.target_path):
+		for filename in filenames:
+			if not filename.endswith (('.cpp', '.h')):
+				continue
+			full_path = os.path.join (root, filename)
+			file_name_list.append ({'full_path': full_path, 'short_filename' : filename, 'args' : args} )
+
+	pool = multiprocessing.Pool ()
+	#results = list (map(extract_file, file_name_list))
+	results = list (pool.map(extract_file, file_name_list))
+	data = {}
+	for r in results:
+		merge_to_dict (data, r)
+	json.dump (data, open ('data.json', 'w'))
+	
