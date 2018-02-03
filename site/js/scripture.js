@@ -116,7 +116,7 @@ $(function () {
     },
   })
 
-  var FileFunctionListModel = Backbone.Model.extend({
+  var FileDataList = Backbone.Model.extend({
     initialize: function () {
       var dataModel = this.get('dataModel')
       this.listenTo(dataModel, 'change:data', this.extract)
@@ -126,21 +126,24 @@ $(function () {
     extract: function () {
       var dataModel = this.get('dataModel')
       var data = dataModel.get('data')
-      var fileData = data.files
-      var funcData = data.functions
       var fileName = this.get('fileName')
-      var funcList = fileData[fileName]['functions']
-      var data = _.map(funcList, function (functionName) {
-      var functionData = funcData[functionName]
+      var fileData = data.files[fileName]
+      var functions = _.map(fileData.functions, function (functionName) {
+      var functionData = data.functions[functionName]
       var signature = genSignature(functionName, functionData, data.structs, data.enums, true)
         return { name: functionName, data: functionData, signature: signature };
       }, this)
-      this.set('data', { data: data })
+      var vars = _.map(fileData.vars, function (varName) {
+        var varData = data.vars[varName]
+          return { name: varName, data: varData, typeHtml : typeNameToHtml (varData.type, data.structs, data.enums) };
+        }, this)
+      
+      this.set('data', { functions: functions, vars: vars })
     },
   })
 
-  var FunctionListView = Backbone.View.extend({
-    template: _.template($('#function-list-template').html()),
+  var FileDataView = Backbone.View.extend({
+    template: _.template($('#file-data-list-template').html()),
 
     initialize: function () {
       this.listenTo(this.model, 'change:data', this.render)
@@ -256,8 +259,8 @@ $(function () {
 
     fileFunctions: function (fileName) {
       var self = this
-      var model = new FileFunctionListModel({ fileName: fileName, dataModel: self.dataModel })
-      var view = new FunctionListView({ model: model })
+      var model = new FileDataList({ fileName: fileName, dataModel: self.dataModel })
+      var view = new FileDataView({ model: model })
       self.mainView.setActive(view)
     },
 

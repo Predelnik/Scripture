@@ -127,14 +127,31 @@ def extract_enum(data, node, name):
 	data['enums'][name] = info
 	return data
 
+def extract_var (data, node):
+	comment = node.raw_comment
+	info = {}
+	if comment:
+		explanation = []
+		for line in comment_to_lines (comment):
+			if extract_by_pattern(line, info, 'address', 'address: (.*)'):
+				continue
+			if extract_by_pattern(line, info, 'psx_ref', 'PSX ref: (.*)'):
+				continue
+			if extract_by_pattern(line, info, 'psx_def', 'PSX def: (.*)'):
+				continue
+			if line:
+				explanation.append (line)
+		info['explanation'] = '\n'.join (explanation)
+	info['type'] = node.type.spelling
+	data['vars'][node.spelling] = info
+	return data['vars'][node.spelling]
+
 def extract(data, node, filepath, short_filename):
 	if str (node.location.file) == filepath: # not parsing cursors from other headers
 		if node.kind == CursorKind.FUNCTION_DECL:
 			func_data = extract_function(data, node)
 			func_data['file_name'] = short_filename
-			if not 'functions' in data['files'][short_filename]:
-				data['files'][short_filename]['functions'] = []
-			data['files'][short_filename]['functions'].append (node.spelling)
+			append_to_set_in_dict (data, ['files', short_filename, 'functions'], node.spelling)
 			return
 		elif node.kind == CursorKind.STRUCT_DECL:
 			if node.spelling:
@@ -142,6 +159,12 @@ def extract(data, node, filepath, short_filename):
 			return
 		elif node.kind == CursorKind.ENUM_DECL:
 			extract_enum(data, node, node.spelling)
+			return
+		elif node.kind == CursorKind.VAR_DECL:
+			var_data = extract_var (data, node)
+			var_data['file_name'] = short_filename
+			# TODO: separate const/non-const etc.
+			append_to_set_in_dict (data, ['files', short_filename, 'vars'], node.spelling)
 			return
 		elif node.kind == CursorKind.TYPEDEF_DECL:
 			children = node.get_children()
