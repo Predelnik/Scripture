@@ -76,7 +76,21 @@
   <p><%= data.explanation %></p>
   <p>
   <table>
-      <tr><td>File:</td><td><a href="#fileFunctions/<%= data.file_name %>"><%= data.file_name %></a></td></tr>
+      <tr><td>File:</td><td><a href="#fileData/<%= data.file_name %>"><%= data.file_name %></a></td></tr>
+      <tr><td>Address:</td><td><%= data.address %></td></tr>
+      <% if (data.psx_ref) { %> <tr><td>PSX Ref:</td><td><%= data.psx_ref %> </td></tr> <% } %>
+      <% if (data.psx_def) { %><tr><td>PSX Def:</td><td><%= data.psx_def %></td></tr> <% } %>
+    </table>
+  </p>
+</script>
+
+<script type="text/template" id="variable-template">
+  <h1>Variable <%= name %></h1>
+  <p><%= data.explanation %></p>
+  <p>
+  <table>
+      <tr><td>Type:</td> <td> <%= typeHtml %></td> </h3>
+      <tr><td>File:</td><td><a href="#fileData/<%= data.file_name %>"><%= data.file_name %></a></td></tr>
       <tr><td>Address:</td><td><%= data.address %></td></tr>
       <% if (data.psx_ref) { %> <tr><td>PSX Ref:</td><td><%= data.psx_ref %> </td></tr> <% } %>
       <% if (data.psx_def) { %><tr><td>PSX Def:</td><td><%= data.psx_def %></td></tr> <% } %>
@@ -102,7 +116,7 @@
         <ul>
     <% _.each(files, function(file_data, file_name) { %>
     <li>
-      <a href="#fileFunctions/<%= file_name %>"><%= file_name %></a>
+      <a href="#fileData/<%= file_name %>"><%= file_name %></a>
     </li>
     <% }) %>
        </ul>

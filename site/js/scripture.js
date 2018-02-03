@@ -116,6 +116,36 @@ $(function () {
     },
   })
 
+  var varModel = Backbone.Model.extend({
+    initialize: function () {
+      var dataModel = this.get('dataModel')
+      this.listenTo(dataModel, 'change:data', this.extract)
+      this.extract()
+    },
+
+    extract: function () {
+      var dataModel = this.get('dataModel')
+      var data = dataModel.get('data')
+      var name = this.get('name')
+      var varData = data.vars[name]
+      this.set('data', { name: name, data: varData, typeHtml: typeNameToHtml (varData.type, data.structs, data.enums)})
+    },
+  })
+
+  var varView = Backbone.View.extend({
+    template: _.template($('#variable-template').html()),
+
+    initialize: function () {
+      this.listenTo(this.model, 'change:data', this.render)
+    },
+
+    render: function () {
+      var data = this.model.get('data')
+      this.$el.html(this.template(data))
+      return this
+    },
+  })
+
   var FileDataList = Backbone.Model.extend({
     initialize: function () {
       var dataModel = this.get('dataModel')
@@ -249,15 +279,16 @@ $(function () {
 
     routes: {
       "": "index",
-      "fileFunctions/:fileName": "fileFunctions",
+      "fileData/:fileName": "fileData",
       "struct/:structName": "struct",
       "enum/:enumName": "enum",
       "function/:functionName": "function",
+      "variable/:variable": "variable",
     },
     index: function () {
     },
 
-    fileFunctions: function (fileName) {
+    fileData: function (fileName) {
       var self = this
       var model = new FileDataList({ fileName: fileName, dataModel: self.dataModel })
       var view = new FileDataView({ model: model })
@@ -282,6 +313,13 @@ $(function () {
       var self = this
       var model = new enumModel({ dataModel: self.dataModel, enumName : enumName })
       var view = new enumView ({ model: model })
+      self.mainView.setActive(view)
+    },
+
+    variable: function (varName) {
+      var self = this
+      var model = new varModel({ dataModel: self.dataModel, name : varName })
+      var view = new varView ({ model: model })
       self.mainView.setActive(view)
     }
   }
