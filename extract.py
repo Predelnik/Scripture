@@ -8,6 +8,7 @@ import re
 import json
 import multiprocessing
 from collections import *
+import copy
 
 import sys
 
@@ -35,19 +36,26 @@ def append_to_set_in_dict (dict, field_list, value):
 		dict[last_field] = {value}
 
 def add_reference_if_needed (data, source_type, source_name, type):
-	referenced_type = type
-	kind = type.kind
-	if kind == TypeKind.POINTER:
-		referenced_type = type.get_pointee ()
-	if referenced_type.kind == TypeKind.TYPEDEF:
-		referenced_type = referenced_type.get_canonical ()
+	simplified_type = type
+	#print (simplified_type.spelling)
+	#print (simplified_type.kind)
+	if simplified_type.kind == TypeKind.POINTER:
+		simplified_type = simplified_type.get_pointee ()
+	if simplified_type.kind == TypeKind.CONSTANTARRAY:
+		simplified_type = simplified_type.get_array_element_type ()
+	if simplified_type.kind == TypeKind.TYPEDEF:
+		simplified_type = simplified_type.get_canonical ()
+	#print (simplified_type.spelling)
+	#print (simplified_type.kind)
 	dest = None
-	if referenced_type.kind == TypeKind.RECORD:
+	if simplified_type.kind == TypeKind.RECORD:
 		dest = 'structs'
-	elif referenced_type.kind == TypeKind.ENUM:
+	elif simplified_type.kind == TypeKind.ENUM:
 		dest = 'enums'
 	if dest:
-		append_to_set_in_dict (data, [dest, referenced_type.spelling, 'referenced_in', source_type], source_name)
+		#if simplified_type.spelling == 'Item':
+		#	print (source_name)
+		append_to_set_in_dict (data, [dest, simplified_type.spelling, 'referenced_in', source_type], source_name)
 
 def extract_function_args(node, info, data): # TODO: support comments for each argument
 	info['args'] = []
@@ -143,6 +151,7 @@ def extract_var (data, node):
 			if line:
 				explanation.append (line)
 		info['explanation'] = '\n'.join (explanation)
+	add_reference_if_needed (data, 'vars', node.spelling, node.type)
 	info['type'] = node.type.spelling
 	data['vars'][node.spelling] = info
 	return data['vars'][node.spelling]
@@ -200,13 +209,17 @@ def merge_to_dict (target, source):
 				merge_to_dict (target[key], value)
 			else:
 				target[key] = value
+	elif isinstance (target, list):
+		target += source
+	elif isinstance (target, Set):
+		target |= source
 	else:
 		target = source
 
 class SetEncoder(json.JSONEncoder):
 	def default(self, obj):
 		if isinstance(obj, set):
-			return list(obj)
+			return sorted(list(obj))
 		return json.JSONEncoder.default(self, obj)
 
 if __name__ == '__main__':

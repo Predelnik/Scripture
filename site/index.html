@@ -39,6 +39,14 @@
     <% }) %>
     </table>
     <% } %>
+  <% if (structData.referenced_in.vars) { %>
+    <h3>Variables</h3>
+    <table> <!-- TODO: Support proper functions signatures -->
+    <% _.each(structData.referenced_in.vars, function(varName) { %>
+      <tr><td><a href="#variable/<%=varName %>" ><%= varName %></a></td></tr>
+    <% }) %>
+    </table>
+    <% } %>
   <% } %>
 </script>
 
@@ -64,6 +72,14 @@
       <table> <!-- TODO: Support proper functions signatures -->
       <% _.each(enumData.referenced_in.structs, function(structName) { %>
         <tr><td><a href="#struct/<%=structName %>" ><%= structName %></a></td></tr>
+      <% }) %>
+      </table>
+      <% } %>
+    <% if (enumData.referenced_in.vars) { %>
+      <h3>Variables</h3>
+      <table> <!-- TODO: Support proper functions signatures -->
+      <% _.each(enumData.referenced_in.vars, function(varName) { %>
+        <tr><td><a href="#variable/<%=varName %>" ><%= varName %></a></td></tr>
       <% }) %>
       </table>
       <% } %>
