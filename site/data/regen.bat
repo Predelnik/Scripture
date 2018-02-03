@@ -1,1 +1,0 @@
-python ..\..\test.py --args="-Id:\devel\notes -x c" "d:\devel\notes"
