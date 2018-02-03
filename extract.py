@@ -213,5 +213,7 @@ if __name__ == '__main__':
 	for name in list (structs.keys ()):
 		if not 'extracted' in structs[name]:
 			del structs[name]
-	json.dump (data, open ('data.json', 'w'), cls=SetEncoder)
+	target_path = os.path.join (os.path.dirname(os.path.realpath(__file__)), 'site/data/data.json')
+	os.makedirs (os.path.dirname (target_path), exist_ok=True)
+	json.dump (data, open (target_path, "w"), cls=SetEncoder)
 	
