@@ -90,6 +90,7 @@ def extract_function(data, node):
 		info['explanation'] = '\n'.join (explanation)
 	extract_function_args(node, info, data)
 	 # TODO: support comments for return value
+	add_reference_if_needed (data, 'functions', node.spelling, node.result_type)
 	info['returns'] = {'type' : node.result_type.spelling}
 	data['functions'][node.spelling] = info
 	return data['functions'][node.spelling]
