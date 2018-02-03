@@ -107,6 +107,7 @@ def extract_struct_members(data, node, info, name): # TODO: support comments for
 def extract_struct(data, node, name):
 	info = {}
 	info['explanation'] = node.raw_comment # TODO: extract PCX def
+	info['extracted'] = True
 	extract_struct_members(data, node, info, name)
 	data['structs'][name] = info
 
@@ -207,5 +208,10 @@ if __name__ == '__main__':
 	data = {}
 	for r in results:
 		merge_to_dict (data, r)
+	structs = data['structs']
+	# removing possible alien structs referenced
+	for name in list (structs.keys ()):
+		if not 'extracted' in structs[name]:
+			del structs[name]
 	json.dump (data, open ('data.json', 'w'), cls=SetEncoder)
 	
