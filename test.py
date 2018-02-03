@@ -21,14 +21,41 @@ def strip_line(line):
 		i += 1
 	return line[i:].strip()
 
-def extract_function_args(node, info): # TODO: support comments for each argument
+def append_to_list_in_dict (dict, field_list, value):
+	for field in field_list[:-1]:
+		if field in dict:
+			dict = dict[field]
+		else:
+			dict[field] = {}
+			dict = dict[field]
+	last_field = field_list[-1]
+	if last_field in dict:
+		dict[last_field].append (value)
+	else:
+		dict[last_field] = [value]
+
+def extract_function_args(node, info, data): # TODO: support comments for each argument
 	info['args'] = []
 	for child in node.get_children():
 		if child.kind == CursorKind.PARM_DECL:
 			arg_info = {}
 			arg_info['name'] = child.displayname
-			arg_info['type'] = child.type.spelling
+			type = child.type
+			arg_info['type'] = type.spelling
 			info['args'].append (arg_info)
+			referenced_type = type
+			kind = type.kind
+			if kind == TypeKind.POINTER:
+				referenced_type = type.get_pointee ()
+			if referenced_type.kind == TypeKind.TYPEDEF:
+				referenced_type = referenced_type.get_canonical ()
+			dest = None
+			if referenced_type.kind == TypeKind.RECORD:
+				dest = 'structs'
+			elif referenced_type.kind == TypeKind.ENUM:
+				dest = 'enums'
+			if dest:
+				append_to_list_in_dict (data, [dest, referenced_type.spelling, 'referenced_in', 'functions'], node.spelling)
 
 def comment_to_lines(comment):
 	comment = comment.replace ('\r\n', '\n')
@@ -58,7 +85,7 @@ def extract_function(data, node):
 			if line:
 				explanation.append (line)
 		info['explanation'] = '\n'.join (explanation)
-	extract_function_args(node, info)
+	extract_function_args(node, info, data)
 	 # TODO: support comments for return value
 	info['returns'] = {'type' : node.result_type.spelling}
 	data['functions'][node.spelling] = info
