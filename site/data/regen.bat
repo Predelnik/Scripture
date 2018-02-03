@@ -1,1 +1,1 @@
-python ..\..\test.py --args="-Id:\devel\notes" "d:\devel\notes"
+python ..\..\test.py --args="-Id:\devel\notes -x c" "d:\devel\notes"

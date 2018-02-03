@@ -20,15 +20,25 @@
   <% _.each(structData.members, function(member) { %>
     <tr><td><%= member.typeHtml %> <%= member.name %></td></tr>
   <% }) %>
-  <% if (structData.referenced_in) { %>
   </table>
+  <% if (structData.referenced_in) { %>
   <h2>Referenced in:</h2>
+  <% if (structData.referenced_in.functions) { %>
   <h3>Functions</h3>
   <table> <!-- TODO: Support proper functions signatures -->
   <% _.each(structData.referenced_in.functions, function(functionName) { %>
     <tr><td><a href="#function/<%=functionName %>" ><%= functionName %></a></td></tr>
   <% }) %>
   </table>
+  <% } %>
+  <% if (structData.referenced_in.structs) { %>
+    <h3>Structs</h3>
+    <table> <!-- TODO: Support proper functions signatures -->
+    <% _.each(structData.referenced_in.structs, function(structName) { %>
+      <tr><td><a href="#struct/<%=structName %>" ><%= structName %></a></td></tr>
+    <% }) %>
+    </table>
+    <% } %>
   <% } %>
 </script>
 
@@ -40,15 +50,24 @@
   <% }) %>
   </table>
   <% if (enumData.referenced_in) { %>
-  </table>
-  <h2>Referenced in:</h2>
-  <h3>Functions</h3>
-  <table> <!-- TODO: Support proper functions signatures -->
-  <% _.each(enumData.referenced_in.functions, function(functionName) { %>
-    <tr><td><a href="#function/<%=functionName %>" ><%= functionName %></a></td></tr>
-  <% }) %>
-  </table>
-  <% } %>
+    <h2>Referenced in:</h2>
+    <% if (enumData.referenced_in.functions) { %>
+    <h3>Functions</h3>
+    <table> <!-- TODO: Support proper functions signatures -->
+    <% _.each(enumData.referenced_in.functions, function(functionName) { %>
+      <tr><td><a href="#function/<%=functionName %>" ><%= functionName %></a></td></tr>
+    <% }) %>
+    </table>
+    <% } %>
+    <% if (enumData.referenced_in.structs) { %>
+      <h3>Structs</h3>
+      <table> <!-- TODO: Support proper functions signatures -->
+      <% _.each(enumData.referenced_in.structs, function(structName) { %>
+        <tr><td><a href="#struct/<%=structName %>" ><%= structName %></a></td></tr>
+      <% }) %>
+      </table>
+      <% } %>
+    <% } %>
 </script>
 
 <script type="text/template" id="function-template">

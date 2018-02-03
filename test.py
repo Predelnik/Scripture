@@ -21,7 +21,7 @@ def strip_line(line):
 		i += 1
 	return line[i:].strip()
 
-def append_to_list_in_dict (dict, field_list, value):
+def append_to_set_in_dict (dict, field_list, value):
 	for field in field_list[:-1]:
 		if field in dict:
 			dict = dict[field]
@@ -30,9 +30,24 @@ def append_to_list_in_dict (dict, field_list, value):
 			dict = dict[field]
 	last_field = field_list[-1]
 	if last_field in dict:
-		dict[last_field].append (value)
+		dict[last_field].add (value)
 	else:
-		dict[last_field] = [value]
+		dict[last_field] = {value}
+
+def add_reference_if_needed (data, source_type, source_name, type):
+	referenced_type = type
+	kind = type.kind
+	if kind == TypeKind.POINTER:
+		referenced_type = type.get_pointee ()
+	if referenced_type.kind == TypeKind.TYPEDEF:
+		referenced_type = referenced_type.get_canonical ()
+	dest = None
+	if referenced_type.kind == TypeKind.RECORD:
+		dest = 'structs'
+	elif referenced_type.kind == TypeKind.ENUM:
+		dest = 'enums'
+	if dest:
+		append_to_set_in_dict (data, [dest, referenced_type.spelling, 'referenced_in', source_type], source_name)
 
 def extract_function_args(node, info, data): # TODO: support comments for each argument
 	info['args'] = []
@@ -43,19 +58,7 @@ def extract_function_args(node, info, data): # TODO: support comments for each a
 			type = child.type
 			arg_info['type'] = type.spelling
 			info['args'].append (arg_info)
-			referenced_type = type
-			kind = type.kind
-			if kind == TypeKind.POINTER:
-				referenced_type = type.get_pointee ()
-			if referenced_type.kind == TypeKind.TYPEDEF:
-				referenced_type = referenced_type.get_canonical ()
-			dest = None
-			if referenced_type.kind == TypeKind.RECORD:
-				dest = 'structs'
-			elif referenced_type.kind == TypeKind.ENUM:
-				dest = 'enums'
-			if dest:
-				append_to_list_in_dict (data, [dest, referenced_type.spelling, 'referenced_in', 'functions'], node.spelling)
+			add_reference_if_needed (data, 'functions', node.spelling, type)
 
 def comment_to_lines(comment):
 	comment = comment.replace ('\r\n', '\n')
@@ -91,7 +94,7 @@ def extract_function(data, node):
 	data['functions'][node.spelling] = info
 	return data['functions'][node.spelling]
 
-def extract_struct_members(node, info): # TODO: support comments for each argument
+def extract_struct_members(data, node, info, name): # TODO: support comments for each argument
 	info['members'] = []
 	for child in node.get_children():
 		member_info = {}
@@ -99,11 +102,12 @@ def extract_struct_members(node, info): # TODO: support comments for each argume
 		member_info['type'] = child.type.spelling
 		member_info['comment'] = child.raw_comment
 		info['members'].append (member_info)
+		add_reference_if_needed (data, 'structs', name, child.type)
 
 def extract_struct(data, node, name):
 	info = {}
 	info['explanation'] = node.raw_comment # TODO: extract PCX def
-	extract_struct_members(node, info)
+	extract_struct_members(data, node, info, name)
 	data['structs'][name] = info
 
 def extract_enum_members(node, info): # TODO: support comments for each argument
@@ -174,6 +178,12 @@ def merge_to_dict (target, source):
 	else:
 		target = source
 
+class SetEncoder(json.JSONEncoder):
+	def default(self, obj):
+		if isinstance(obj, set):
+			return list(obj)
+		return json.JSONEncoder.default(self, obj)
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	parser.add_argument('-v', '--verbose', action="store_true", dest="verbose", help="Verbose output", default=False)
@@ -197,5 +207,5 @@ if __name__ == '__main__':
 	data = {}
 	for r in results:
 		merge_to_dict (data, r)
-	json.dump (data, open ('data.json', 'w'))
+	json.dump (data, open ('data.json', 'w'), cls=SetEncoder)
 	
