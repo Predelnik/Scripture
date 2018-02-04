@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+##!/usr/bin/env python3
 from clang.cindex import *
 import clang.cindex
 import argparse
@@ -16,8 +16,10 @@ def dict_gen():
 	return defaultdict(dict)
 
 # strips forward slashes and spaces
-def strip_line(line):
+def strip_comment_line(line):
 	i = 0
+	while i < len (line) and line[i] != '/':
+		i += 1
 	while i < len (line) and line[i] == '/':
 		i += 1
 	if i < len (line) and line[i] == ' ':
@@ -39,24 +41,18 @@ def append_to_set_in_dict (dict, field_list, value):
 
 def add_reference_if_needed (data, source_type, source_name, type):
 	simplified_type = type
-	#print (simplified_type.spelling)
-	#print (simplified_type.kind)
 	if simplified_type.kind == TypeKind.POINTER:
 		simplified_type = simplified_type.get_pointee ()
 	if simplified_type.kind == TypeKind.CONSTANTARRAY:
 		simplified_type = simplified_type.get_array_element_type ()
 	if simplified_type.kind == TypeKind.TYPEDEF:
 		simplified_type = simplified_type.get_canonical ()
-	#print (simplified_type.spelling)
-	#print (simplified_type.kind)
 	dest = None
 	if simplified_type.kind == TypeKind.RECORD:
 		dest = 'structs'
 	elif simplified_type.kind == TypeKind.ENUM:
 		dest = 'enums'
 	if dest:
-		#if simplified_type.spelling == 'Item':
-		#	print (source_name)
 		append_to_set_in_dict (data, [dest, simplified_type.spelling, 'referenced_in', source_type], source_name)
 
 def extract_function_args(node, info, data): # TODO: support comments for each argument
@@ -73,7 +69,7 @@ def extract_function_args(node, info, data): # TODO: support comments for each a
 def comment_to_lines(comment):
 	comment = comment.replace ('\r\n', '\n')
 	lines = comment.split ('\n')
-	lines = [strip_line(line) for line in lines]
+	lines = [strip_comment_line(line) for line in lines]
 	return lines
 
 def extract_by_pattern(line, dict, target, pattern):
@@ -89,11 +85,11 @@ def extract_function(data, node):
 	if comment:
 		explanation = []
 		for line in comment_to_lines (comment):
-			if extract_by_pattern(line, info, 'address', 'address: (.*)'):
+			if extract_by_pattern(line, info, 'address', 'address:? (.*)'):
 				continue
-			if extract_by_pattern(line, info, 'psx_ref', 'PSX ref: (.*)'):
+			if extract_by_pattern(line, info, 'psx_ref', 'PSX ref:? (.*)'):
 				continue
-			if extract_by_pattern(line, info, 'psx_def', 'PSX def: (.*)'):
+			if extract_by_pattern(line, info, 'psx_def', 'PSX def:? (.*)'):
 				continue
 			if line:
 				explanation.append (line)
@@ -117,8 +113,13 @@ def fill_enum_struct_comment_data (comment, info):
 		elif line == 'PSX def:':
 			target = 'psx_def'
 			continue
-		elif line == '}':
+		elif line.startswith ('}'):
 			target == 'explanation'
+		else:
+			m = re.match ('size = 0x([0-9A-F]+)', line)
+			if m:
+				info['size'] = int (m.group(1), 16)
+				continue
 		if line:
 			if not target in data:
 				data[target] = []
@@ -126,8 +127,18 @@ def fill_enum_struct_comment_data (comment, info):
 	for key, lines in data.items():
 		info[key] = '\n'.join (lines)
 
-def parse_struct_member_comment(comment, info):
-	pass
+def extract_struct_member_comment(comment, info):
+	if not comment:
+		return
+	explanation = []
+	for line in comment_to_lines(comment):
+		m = re.match ('offset:? ([A-F0-9]+) \(([0-9]+) bytes?\)', line)
+		if m:
+			info['offset'] = m.group(1)
+			info['size'] = m.group(2)
+			continue
+		explanation.append (line)
+	info['explanation'] = '\n'.join (explanation)
 
 def extract_struct_members(data, node, info, name): # TODO: support comments for each argument
 	info['members'] = []
@@ -135,7 +146,7 @@ def extract_struct_members(data, node, info, name): # TODO: support comments for
 		member_info = {}
 		member_info['name'] = child.spelling
 		member_info['type'] = child.type.spelling
-		parse_struct_member_comment (child.raw_comment, member_info)
+		extract_struct_member_comment (child.raw_comment, member_info)
 		info['members'].append (member_info)
 		add_reference_if_needed (data, 'structs', name, child.type)
 
@@ -272,7 +283,7 @@ if __name__ == '__main__':
 	for r in results:
 		merge_to_dict (data, r)
 	structs = data['structs']
-	# removing possible alien structs referenced
+	#removing possible alien structs referenced
 	for name in list (structs.keys ()):
 		if not 'extracted' in structs[name]:
 			del structs[name]

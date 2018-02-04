@@ -16,6 +16,9 @@
 
 <script type="text/template" id="struct-template">
   <h1>Struct <%= structName %></h1>
+  <% if (structData.size) { %>
+  <h3>Size = 0x<%= structData.size.toString(16) %></h3>
+  <% } %>
   <pre><%= structData.explanation %></pre>
   <% if (structData.psx_def) { %>
   <h2>PSX Defintion:</h2>
@@ -23,8 +26,9 @@
   <% } %>
   <h2>Definition:</h2>
   <table>
+  <tr><th>Offset</th><th>Size</th><th>Type</th><th>Name</th><th>Comments</th></tr>
   <% _.each(structData.members, function(member) { %>
-    <tr><td><%= member.typeHtml %></td> <td><%= member.name %></td><td><%= member.comment %></td></tr>
+    <tr><td><%= member.offset %></td><td><%= member.size %></td><td><%= member.typeHtml %></td> <td><%= member.name %></td><td><%= member.explanation %></td></tr>
   <% }) %>
   </table>
   <% if (structData.referenced_in) { %>
