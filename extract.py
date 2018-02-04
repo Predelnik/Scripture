@@ -110,7 +110,9 @@ def fill_enum_struct_comment_data (comment, info):
 	target = 'explanation'
 	data = {}
 	for line in comment_to_lines (comment):
-		if line == 'PSX def:':
+		if line == 'References:':
+			break
+		elif line == 'PSX def:':
 			target = 'psx_def'
 			continue
 		elif line == '}':
