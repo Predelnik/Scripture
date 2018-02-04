@@ -20,7 +20,9 @@ def strip_line(line):
 	i = 0
 	while i < len (line) and line[i] == '/':
 		i += 1
-	return line[i:].strip()
+	if i < len (line) and line[i] == ' ':
+		i += 1
+	return line[i:]
 
 def append_to_set_in_dict (dict, field_list, value):
 	for field in field_list[:-1]:
@@ -124,13 +126,16 @@ def fill_enum_struct_comment_data (comment, info):
 	for key, lines in data.items():
 		info[key] = '\n'.join (lines)
 
+def parse_struct_member_comment(comment, info):
+	pass
+
 def extract_struct_members(data, node, info, name): # TODO: support comments for each argument
 	info['members'] = []
 	for child in node.get_children():
 		member_info = {}
 		member_info['name'] = child.spelling
 		member_info['type'] = child.type.spelling
-		member_info['comment'] = child.raw_comment
+		parse_struct_member_comment (child.raw_comment, member_info)
 		info['members'].append (member_info)
 		add_reference_if_needed (data, 'structs', name, child.type)
 

@@ -16,17 +16,15 @@
 
 <script type="text/template" id="struct-template">
   <h1>Struct <%= structName %></h1>
-  <%= structData.explanation %>
+  <pre><%= structData.explanation %></pre>
   <% if (structData.psx_def) { %>
   <h2>PSX Defintion:</h2>
-  <pre>
-  <%= structData.psx_def %>
-  </pre>
+  <pre><%= structData.psx_def %></pre>
   <% } %>
   <h2>Definition:</h2>
   <table>
   <% _.each(structData.members, function(member) { %>
-    <tr><td><%= member.typeHtml %> <%= member.name %></td></tr>
+    <tr><td><%= member.typeHtml %></td> <td><%= member.name %></td><td><%= member.comment %></td></tr>
   <% }) %>
   </table>
   <% if (structData.referenced_in) { %>
@@ -60,12 +58,10 @@
 
 <script type="text/template" id="enum-template">
   <h1>Enum <%= enumName %></h1>
-  <%= enumData.explanation %>
+  <pre><%= enumData.explanation %></pre>
   <% if (enumData.psx_def) { %>
   <h3>PSX Defintion:</h3>
-  <pre>
-  <%= enumData.psx_def %>
-  </pre>
+  <pre><%= enumData.psx_def %></pre>
   <% } %>
   <h2>Values:</h2>
   <table>
@@ -105,7 +101,7 @@
 <script type="text/template" id="function-template">
   <h1>Function <%= name %></h1>
   <h3> <%= signature %> </h3>
-  <p><%= data.explanation %></p>
+  <pre><%= data.explanation %></pre>
   <p>
   <table>
       <tr><td>File:</td><td><a href="#fileData/<%= data.file_name %>"><%= data.file_name %></a></td></tr>
@@ -118,7 +114,7 @@
 
 <script type="text/template" id="variable-template">
   <h1>Variable <%= name %></h1>
-  <p><%= data.explanation %></p>
+  <pre><%= data.explanation %></pre>
   <p>
   <table>
       <tr><td>Type:</td> <td> <%= typeHtml %></td> </h3>

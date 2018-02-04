@@ -17,7 +17,7 @@ $(function () {
   var genSignature = function (functionName, data, structs, enums, includeLink) {
     if (includeLink)
       functionName = '<a href=#function/' + functionName + '>' + functionName + '</a>'
-    return typeNameToHtml (data.returns.type, structs, enums) + ' ' + functionName + '(' + _.map(data.args, function (argData) {
+    return typeNameToHtml (data.returns.type, structs, enums) + ' ' + functionName + '&nbsp(' + _.map(data.args, function (argData) {
       argType = argData.type
       return typeNameToHtml (argType, structs, enums) + argData.name
     }).join(', ') + ')'
