@@ -16,6 +16,14 @@
 
 <script type="text/template" id="struct-template">
   <h1>Struct <%= structName %></h1>
+  <%= structData.explanation %>
+  <% if (structData.psx_def) { %>
+  <h2>PSX Defintion:</h2>
+  <pre>
+  <%= structData.psx_def %>
+  </pre>
+  <% } %>
+  <h2>Definition:</h2>
   <table>
   <% _.each(structData.members, function(member) { %>
     <tr><td><%= member.typeHtml %> <%= member.name %></td></tr>
@@ -52,6 +60,14 @@
 
 <script type="text/template" id="enum-template">
   <h1>Enum <%= enumName %></h1>
+  <%= enumData.explanation %>
+  <% if (enumData.psx_def) { %>
+  <h3>PSX Defintion:</h3>
+  <pre>
+  <%= enumData.psx_def %>
+  </pre>
+  <% } %>
+  <h2>Values:</h2>
   <table>
   <% _.each(enumData.members, function(member) { %>
     <tr><td><%= member.name %></td><td>=</td><td><%= member.value %></td></tr>

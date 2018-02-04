@@ -103,6 +103,25 @@ def extract_function(data, node):
 	data['functions'][node.spelling] = info
 	return data['functions'][node.spelling]
 
+def fill_enum_struct_comment_data (comment, info):
+	if not comment:
+		return ''
+	explanation = []
+	target = 'explanation'
+	data = {}
+	for line in comment_to_lines (comment):
+		if line == 'PSX def:':
+			target = 'psx_def'
+			continue
+		elif line == '}':
+			target == 'explanation'
+		if line:
+			if not target in data:
+				data[target] = []
+			data[target].append (line)
+	for key, lines in data.items():
+		info[key] = '\n'.join (lines)
+
 def extract_struct_members(data, node, info, name): # TODO: support comments for each argument
 	info['members'] = []
 	for child in node.get_children():
@@ -115,7 +134,7 @@ def extract_struct_members(data, node, info, name): # TODO: support comments for
 
 def extract_struct(data, node, name):
 	info = {}
-	info['explanation'] = node.raw_comment # TODO: extract PCX def
+	fill_enum_struct_comment_data (node.raw_comment, info)
 	info['extracted'] = True
 	extract_struct_members(data, node, info, name)
 	data['structs'][name] = info
@@ -131,7 +150,7 @@ def extract_enum_members(node, info): # TODO: support comments for each argument
 
 def extract_enum(data, node, name):
 	info = {}
-	info['explanation'] = node.raw_comment # TODO: extract PCX def
+	fill_enum_struct_comment_data (node.raw_comment, info)
 	extract_enum_members(node, info)
 	data['enums'][name] = info
 	return data
