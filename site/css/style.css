@@ -112,6 +112,14 @@ h2 small {
   color: #666;
 }
 
+table.structMembers td, th {
+  border: 1px solid black;
+}
+
+table.structMembers {
+  border-collapse: collapse
+}
+
 table.methods {
   width: 100%;
 }

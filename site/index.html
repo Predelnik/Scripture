@@ -25,10 +25,12 @@
   <pre><%= structData.psx_def %></pre>
   <% } %>
   <h2>Definition:</h2>
-  <table>
-  <tr><th>Offset</th><th>Size</th><th>Type</th><th>Name</th><th>Comments</th></tr>
+  <table class="structMembers">
+  <tr><% if (structData.members && structData.members[0].offset) { %><th>Offset</th><th>Size</th><% } %>
+  <th>Type</th><th>Name</th><th>Comments</th></tr>
   <% _.each(structData.members, function(member) { %>
-    <tr><td><%= member.offset %></td><td><%= member.size %></td><td><%= member.typeHtml %></td> <td><%= member.name %></td><td><%= member.explanation %></td></tr>
+    <tr><% if (structData.members && structData.members[0].offset) { %><td><%= member.offset %></td><td><%= member.size %></td><% } %>
+      <td><%= member.typeHtml %></td> <td><%= member.name %></td><td><%= member.explanation %></td></tr>
   <% }) %>
   </table>
   <% if (structData.referenced_in) { %>
