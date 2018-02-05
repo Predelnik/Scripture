@@ -24,6 +24,8 @@ def strip_comment_line(line):
 		i += 1
 	if i < len (line) and line[i] == ' ':
 		i += 1
+	if i < len (line) and line[i] == '<':
+		i += 1
 	return line[i:]
 
 def append_to_set_in_dict (dict, field_list, value):
@@ -163,7 +165,8 @@ def extract_enum_members(node, info): # TODO: support comments for each argument
 		member_info = {}
 		member_info['name'] = child.spelling
 		member_info['value'] = child.enum_value
-		member_info['comment'] = child.raw_comment
+		if child.raw_comment:
+			member_info['explanation'] = '\n'.join (comment_to_lines (child.raw_comment))
 		info['members'].append (member_info)
 
 def extract_enum(data, node, name):
