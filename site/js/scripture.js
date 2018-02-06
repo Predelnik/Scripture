@@ -86,6 +86,80 @@ $(function () {
     },
   })
 
+  var SearchFieldView = Backbone.View.extend({
+    tagName: 'input',
+
+    el: $('#search-field'),
+
+    events: {
+      'keyup': function() {
+	this.trigger('keyup')
+	if (this.$el.val() == '')
+	  this.trigger('empty')
+      }
+    },
+  })
+
+  var SearchCollection = Backbone.Collection.extend({
+    defaults: {
+      value: '',
+    },
+
+    initialize: function(args) {
+      this.field = args.field
+      this.dataModel = args.dataModel
+
+      this.listenTo(this.field, 'keyup', this.keyup)
+    },
+
+    keyup: function() {
+      var newValue = this.field.$el.val()
+      if (this.value == newValue || newValue.length < 3)
+	return
+
+      this.value = newValue
+      this.refreshSearch()
+    },
+
+    refreshSearch: function() {
+      var model = this.dataModel
+      var value = this.value
+
+      var data = model.get('data')
+      var searchResults = []
+
+      // look for functions (name, comment, argline)
+      _.forEach(data.functions, function(functionData, name) {
+        if (name.search(value) > -1) {
+        var link = 'function/' + name
+        searchResults.push({url: '#' + link, name: name, match: 'function', navigate: link})
+          return
+        }
+        // TODO: support search for address
+        // TODO: support search in arglines
+      })
+
+      // TODO: suuport search for structs/ members
+      // TODO: suuport search for enums / members
+      // TODO: support search for variables
+
+      this.reset(searchResults)
+    },
+  })
+
+  var SearchView = Backbone.View.extend({
+    template: _.template($('#search-template').html()),
+
+    // initialize: function() {
+    //   this.listenTo(this.model, 'reset', this.render)
+    // },
+
+    render: function() {
+      var content = this.template({results: this.collection.toJSON()})
+      this.el = content
+     }
+  })
+
   var functionModel = Backbone.Model.extend({
     initialize: function () {
       var dataModel = this.get('dataModel')
@@ -275,6 +349,7 @@ $(function () {
     initialize: function (o) {
       this.dataModel = o.dataModel
       this.mainView = o.mainView
+      this.search = o.search
     },
 
     routes: {
@@ -284,54 +359,69 @@ $(function () {
       "enum/:enumName": "enum",
       "function/:functionName": "function",
       "variable/:variable": "variable",
+      "search/:query": "search",
     },
     index: function () {
     },
 
     fileData: function (fileName) {
-      var self = this
-      var model = new FileDataList({ fileName: fileName, dataModel: self.dataModel })
+      var model = new FileDataList({ fileName: fileName, dataModel: this.dataModel })
       var view = new FileDataView({ model: model })
-      self.mainView.setActive(view)
+      this.mainView.setActive(view)
     },
 
     struct: function (structName) {
-      var self = this
-      var model = new structModel({ dataModel: self.dataModel, structName : structName })
+      var model = new structModel({ dataModel: this.dataModel, structName : structName })
       var view = new structView ({ model: model })
-      self.mainView.setActive(view)
+      this.mainView.setActive(view)
     },
 
     function: function (functionName) {
-      var self = this
-      var model = new functionModel({ dataModel: self.dataModel, name : functionName })
+      var model = new functionModel({ dataModel: this.dataModel, name : functionName })
       var view = new functionView ({ model: model })
-      self.mainView.setActive(view)
+      this.mainView.setActive(view)
     },
 
     enum: function (enumName) {
-      var self = this
-      var model = new enumModel({ dataModel: self.dataModel, enumName : enumName })
+      var model = new enumModel({ dataModel: this.dataModel, enumName : enumName })
       var view = new enumView ({ model: model })
-      self.mainView.setActive(view)
+      this.mainView.setActive(view)
     },
 
     variable: function (varName) {
-      var self = this
-      var model = new varModel({ dataModel: self.dataModel, name : varName })
+      var model = new varModel({ dataModel: this.dataModel, name : varName })
       var view = new varView ({ model: model })
-      self.mainView.setActive(view)
-    }
+      this.mainView.setActive(view)
+    },
+
+    search: function(query) {
+      var view = new SearchView({collection: this.search})
+      $('#search-field').val(query).keyup()
+      this.mainView.setActive(view)
+    },
   }
   )
 
   var dataModel = new DataModel();
   var mainView = new MainView();
+
+  var searchField = new SearchFieldView({id: 'search-field'})
+  var searchCol = new SearchCollection({dataModel: dataModel, field: searchField})
+
   var fileList = new MainMenuModel({ dataModel: dataModel });
   var fileListView = new MainMenuView({ model: fileList });
-  var router = new Workspace({ mainView: mainView, dataModel: dataModel })
+  var router = new Workspace({ mainView: mainView, dataModel: dataModel, search: searchCol })
 
   dataModel.once('change:data', function () {
     Backbone.history.start()
+  })
+
+  searchCol.on('reset', function(col, prev) {
+    if (col.length == 1) {
+      router.navigate(col.pluck('navigate')[0], {trigger: true, replace: true})
+    } else {
+      // FIXME: this keeps recreating the view
+      router.navigate('search/' + col.value, {trigger: true})
+    }
   })
 })

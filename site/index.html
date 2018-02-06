@@ -104,6 +104,18 @@
     <% } %>
 </script>
 
+<script type="text/template" id="search-template">
+  <h1>Search Results</h1>
+  <table>
+<% _.each(results, function(result) { %>
+<tr>
+<td><a href="<%= result.url %>"><%= result.name %></a></td>
+<td><%= result.match %></td>
+</tr>
+<% }) %>
+  </table>
+</script>
+
 <script type="text/template" id="function-template">
   <h1>Function <%= name %></h1>
   <h3> <%= signature %> </h3>
@@ -172,7 +184,34 @@
     </ul>
 </script>
 
+<script type="text/template" id="search-template">
+  <h1>Search Results</h1>
+  <table>
+<% _.each(results, function(result) { %>
+<tr>
+<td><a href="<%= result.url %>"><%= result.name %></a></td>
+<td><%= result.match %></td>
+</tr>
+<% }) %>
+  </table>
+</script>
+
 <body class="documentation">
+
+  <div id="not-footer">
+    <div id="header-wrapper">
+      <div id="header">
+        <div>
+          <a class="logo" href="#" id="site-title">sanctuary/notes</a>
+          <ul class="nav">
+            <li><input type="text" class="search" id="search-field" name="q" autocomplete="off"></li>
+          </ul>
+        </div>
+        <a href="#" id="site-logo">
+          <img class="logo" id="img-logo" src="" alt="">
+        </a>
+      </div><!-- #header -->
+  </div><!-- #header-wrapper -->
 
   <div id="wrapper">
     <div id="content" class="content"></div>
