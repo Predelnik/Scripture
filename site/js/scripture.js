@@ -110,6 +110,7 @@ $(function () {
       this.dataModel = args.dataModel
 
       this.listenTo(this.field, 'keyup', this.keyup)
+      timeoutHandle = null
     },
 
     keyup: function() {
@@ -118,7 +119,10 @@ $(function () {
 	return
 
       this.value = newValue
-      this.refreshSearch()
+      self = this
+      if (timeoutHandle)
+        clearTimeout (timeoutHandle)
+      timeoutHandle = setTimeout( function () { self.refreshSearch()}, 500)
     },
 
     refreshSearch: function() {
@@ -128,21 +132,46 @@ $(function () {
       var data = model.get('data')
       var searchResults = []
 
-      // look for functions (name, comment, argline)
       _.forEach(data.functions, function(functionData, name) {
-        if (name.search(value) > -1) {
+        if (name.search(value) > -1 || (functionData.address && functionData.address.search (value) > -1) ||
+           _.findIndex (functionData.args, function (argData){
+            return argData.name.search (value) > -1;
+           }) > -1) {
         var link = 'function/' + name
-        searchResults.push({url: '#' + link, name: name, match: 'function', navigate: link})
+        searchResults.push({url: '#' + link, name: (functionData.address ? (functionData.address + ': ') : '') + name, match: 'function', navigate: link})
           return
         }
-        // TODO: support search for address
-        // TODO: support search in arglines
       })
 
-      // TODO: suuport search for structs/ members
-      // TODO: suuport search for enums / members
-      // TODO: support search for variables
+      _.forEach(data.vars, function(variableData, name) {
+        if (name.search(value) > -1 || (variableData.address && variableData.address.search (value) > -1)) {
+        var link = 'variable/' + name
+        searchResults.push({url: '#' + link, name: (variableData.address ? (variableData.address + ': ') : '') + name, match: 'variable', navigate: link})
+          return
+        }
+      })
 
+      _.forEach(data.structs, function(structData, name) {
+        if (name.search(value) > -1 ||
+           _.findIndex (structData.members, function (member){
+            return member.name.search (value) > -1;
+           }) > -1) {
+        var link = 'struct/' + name
+        searchResults.push({url: '#' + link, name: name, match: 'struct', navigate: link})
+          return
+        }
+      })
+
+      _.forEach(data.enums, function(enumData, name) {
+        if (name.search(value) > -1 ||
+           _.findIndex (enumData.members, function (member){
+            return member.name.search (value) > -1;
+           }) > -1) {
+        var link = 'enum/' + name
+        searchResults.push({url: '#' + link, name: name, match: 'enum', navigate: link})
+          return
+        }
+      })
       this.reset(searchResults)
     },
   })

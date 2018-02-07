@@ -77,7 +77,7 @@ def comment_to_lines(comment):
 def extract_by_pattern(line, dict, target, pattern):
 	m = re.match(pattern, line)
 	if m:
-		dict[target] = m.groups(1)
+		dict[target] = m.group(1)
 		return True
 	return False
 
