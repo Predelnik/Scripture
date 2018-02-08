@@ -125,6 +125,7 @@ table.enumTable td {
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 45em;
+  white-space: nowrap;
 }
 
 table.methods {
