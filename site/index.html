@@ -70,7 +70,7 @@
   <pre><%= enumData.psx_def %></pre>
   <% } %>
   <h2>Values:</h2>
-  <table>
+  <table class="enumTable">
   <% _.each(enumData.members, function(member) { %>
     <tr><td><%= member.name %></td><td>=</td><td><%= member.value %></td><td><%= member.explanation %></td></tr>
   <% }) %>

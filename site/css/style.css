@@ -114,10 +114,17 @@ h2 small {
 
 table.structMembers td, th {
   border: 1px solid black;
+  padding: 5px;
 }
 
 table.structMembers {
-  border-collapse: collapse
+  border-collapse: collapse;
+}
+
+table.enumTable td {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 45em;
 }
 
 table.methods {
