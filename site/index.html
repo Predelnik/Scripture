@@ -145,31 +145,37 @@
 </script>
 
 <script type="text/template" id="file-data-list-template">
-  <h1>Functions</h1>
-  <% _.each(functions, function(func) { %>
+  <h1>File `<%= fileName %>`:</h1>
+  <% if (functions.length > 0) { %>
+  <h2 class="fileDataGroup">Functions:</h2>
+  <% _.each(_.sortBy (functions, function (func){ return func.data.address}), function(func) { %>
     <h3><%= func.data.address %></h3>
     <h4><%= func.signature %></h4>
   <% }) %>
-  <h1>Variables</h1>
+  <% } %>
+  <h2 class="fileDataGroup">Variables:</h2>
   <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'readonly'; }) %>
+  <% filtered = _.sortBy (filtered, function (variable) { return variable.data.address; }) %>
   <% if (filtered.length > 0) { %>
-  <h2>Read-Only</h2>
+  <h3 class="varGroup">Read-Only:</h3>
   <% _.each (filtered, function(variable) { %>
     <h3><%= variable.data.address %></h3>
     <h4><%= variable.varSignatureHtml %></h4>
   <% }) %>
   <% } %>
   <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'readwrite'; }) %>
+  <% filtered = _.sortBy (filtered, function (variable) { return variable.data.address; }) %>
   <% if (filtered.length > 0) { %>
-  <h2>Read-Write</h2>
+  <h3 class="varGroup">Read-Write:</h3>
   <% _.each (filtered, function(variable) { %>
     <h3><%= variable.data.address %></h3>
     <h4><%= variable.varSignatureHtml %></h4>
   <% }) %>
   <% } %>
   <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'uninitialized'; }) %>
+  <% filtered = _.sortBy (filtered, function (variable) { return variable.data.address; }) %>
   <% if (filtered.length > 0) { %>
-  <h2>Uninitialized</h2>
+  <h3 class="varGroup">Uninitialized:</h3>
   <% _.each (filtered, function(variable) { %>
     <h3><%= variable.data.address %></h3>
     <h4><%= variable.varSignatureHtml %></h4>

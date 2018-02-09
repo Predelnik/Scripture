@@ -280,11 +280,11 @@ $(function () {
       }, this)
       var vars = _.map(fileData.vars, function (varName) {
         var varData = data.vars[varName]
-        nameLink = '<a href=#var/' + varName + '>' + varName + '</a>'
+        nameLink = '<a href=#variable/' + varName + '>' + varName + '</a>'
           return { name: varName, data: varData, varSignatureHtml : typeNameToHtml (varData.type, data.structs, data.enums, nameLink) };
         }, this)
       
-      this.set('data', { functions: functions, vars: vars })
+      this.set('data', { functions: functions, vars: vars, fileName: fileName })
     },
   })
 

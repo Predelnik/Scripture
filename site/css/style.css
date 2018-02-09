@@ -261,6 +261,14 @@ h1.funcTitle small {
     display: block;
 }
 
+h2.fileDataGroup {
+  border-bottom:1px solid #ddd
+}
+
+h3.varGroup {
+  border-bottom:1px solid #eee
+}
+
 h2.funcGroup {
   border: 0;
   margin: 5px 0;
