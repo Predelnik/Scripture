@@ -2,13 +2,13 @@ $(function () {
 
   var typeNameToHtml = function (typeName, structs, enums, varName = '') {
       lastChar = typeName.charAt(typeName.length - 1)
-      var re = /([^\[\]\*]+)(\**)(\[\d+\]*)?/g
+      var re = /(const\s*)?([^\[\]\*\s]+)(?:\s*)(\**)(\[\d+\]*)?/g
       var match = re.exec (typeName)
-      var name = match[1]
-      var stars = match[2] ? match[2] : ''
-      var extents = match[3] ? match[3] : ''
-      if (!stars)
-        stars = ' '
+      var prefix = match[1] ? match[1] : ''
+      var name = match[2]
+      var stars = match[3] ? match[3] : ''
+      var extents = match[4] ? match[4] : ''
+      stars = '&nbsp&nbsp' + stars
       htmlPrefix = ''
       if (name in structs)
         htmlPrefix = '<a href=#struct/'
@@ -17,19 +17,19 @@ $(function () {
 
       if (htmlPrefix)
         if (varName)
-          return htmlPrefix + name + '>' + name + '</a>' + stars + varName + extents
+          return prefix + htmlPrefix + name + '>' + name + '</a>' + stars + varName + extents
         else
-          return htmlPrefix + name + '>' + name + '</a>' + stars + extents
+          return prefix + htmlPrefix + name + '>' + name + '</a>' + stars + extents
           
       if (varName)
-        return name + stars + varName + extents
-      return typeName
+        return prefix + name + stars + varName + extents
+      return prefix + name + stars + extents
   }
 
   var genFunctionSignature = function (functionName, data, structs, enums, includeLink) {
     if (includeLink)
       functionName = '<a href=#function/' + functionName + '>' + functionName + '</a>'
-    return typeNameToHtml (data.returns.type, structs, enums) + '&nbsp&nbsp' + functionName + '&nbsp(' + _.map(data.args, function (argData) {
+    return typeNameToHtml (data.returns.type, structs, enums) + functionName + '&nbsp(' + _.map(data.args, function (argData) {
       argType = argData.type
       return typeNameToHtml (argType, structs, enums) + argData.name
     }).join(', ') + ')'

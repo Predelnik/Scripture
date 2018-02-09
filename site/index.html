@@ -145,7 +145,7 @@
 </script>
 
 <script type="text/template" id="file-data-list-template">
-  <h1>File `<%= fileName %>`:</h1>
+  <h1>File `<%= fileName %>`</h1>
   <% if (functions.length > 0) { %>
   <h2 class="fileDataGroup">Functions:</h2>
   <% _.each(_.sortBy (functions, function (func){ return func.data.address}), function(func) { %>
