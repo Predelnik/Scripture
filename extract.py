@@ -182,11 +182,11 @@ def extract_var (data, node):
 	if comment:
 		explanation = []
 		for line in comment_to_lines (comment):
-			if extract_by_pattern(line, info, 'address', 'address: (.*)'):
+			if extract_by_pattern(line, info, 'address', 'address:? (.*)'):
 				continue
-			if extract_by_pattern(line, info, 'psx_ref', 'PSX ref: (.*)'):
+			if extract_by_pattern(line, info, 'psx_ref', 'PSX ref:? (.*)'):
 				continue
-			if extract_by_pattern(line, info, 'psx_def', 'PSX def: (.*)'):
+			if extract_by_pattern(line, info, 'psx_def', 'PSX def:? (.*)'):
 				continue
 			if line:
 				explanation.append (line)
@@ -213,6 +213,12 @@ def extract(data, node, filepath, short_filename):
 		elif node.kind == CursorKind.VAR_DECL:
 			var_data = extract_var (data, node)
 			var_data['file_name'] = short_filename
+			if 'rdata' in filepath:
+				var_data['category'] = 'readonly'
+			elif 'data' in filepath:
+				var_data['category'] = 'readwrite'
+			else:
+				var_data['category'] = 'unitialized'
 			# TODO: separate const/non-const etc.
 			append_to_set_in_dict (data, ['files', short_filename, 'vars'], node.spelling)
 			return
@@ -293,4 +299,3 @@ if __name__ == '__main__':
 	target_path = os.path.join (os.path.dirname(os.path.realpath(__file__)), 'site/data/data.json')
 	os.makedirs (os.path.dirname (target_path), exist_ok=True)
 	json.dump (data, open (target_path, "w"), cls=SetEncoder)
-	

@@ -1,23 +1,35 @@
 $(function () {
 
-  var typeNameToHtml = function (typeName, structs, enums) {
+  var typeNameToHtml = function (typeName, structs, enums, varName = '') {
       lastChar = typeName.charAt(typeName.length - 1)
-      var re = /([^\s\[\]*]+)(\s*(?:\[\d+\]|\*))?/g
+      var re = /([^\[\]\*]+)(\**)(\[\d+\]*)?/g
       var match = re.exec (typeName)
-      var name = match[1], suffix = match[2] ? match[2] : ''
-      mbSpace = suffix ? '' : ' '
+      var name = match[1]
+      var stars = match[2] ? match[2] : ''
+      var extents = match[3] ? match[3] : ''
+      if (!stars)
+        stars = ' '
+      htmlPrefix = ''
       if (name in structs)
-        return '<a href=#struct/' + name + '>' + name + '</a>' + suffix + mbSpace
+        htmlPrefix = '<a href=#struct/'
       else if (name in enums)
-        return '<a href=#enum/' + name + '>' + name + '</a>' + suffix + mbSpace
-      
-      return typeName + mbSpace
+        htmlPrefix = '<a href=#enum/'
+
+      if (htmlPrefix)
+        if (varName)
+          return htmlPrefix + name + '>' + name + '</a>' + stars + varName + extents
+        else
+          return htmlPrefix + name + '>' + name + '</a>' + stars + extents
+          
+      if (varName)
+        return name + stars + varName + extents
+      return typeName
   }
 
-  var genSignature = function (functionName, data, structs, enums, includeLink) {
+  var genFunctionSignature = function (functionName, data, structs, enums, includeLink) {
     if (includeLink)
       functionName = '<a href=#function/' + functionName + '>' + functionName + '</a>'
-    return typeNameToHtml (data.returns.type, structs, enums) + ' ' + functionName + '&nbsp(' + _.map(data.args, function (argData) {
+    return typeNameToHtml (data.returns.type, structs, enums) + '&nbsp&nbsp' + functionName + '&nbsp(' + _.map(data.args, function (argData) {
       argType = argData.type
       return typeNameToHtml (argType, structs, enums) + argData.name
     }).join(', ') + ')'
@@ -201,7 +213,7 @@ $(function () {
       var data = dataModel.get('data')
       var name = this.get('name')
       var functionData = data.functions[name]
-      this.set('data', { name: name, data: functionData, signature: genSignature (name, functionData, data.structs, data.enums, false)})
+      this.set('data', { name: name, data: functionData, signature: genFunctionSignature (name, functionData, data.structs, data.enums, false)})
     },
   })
 
@@ -249,7 +261,7 @@ $(function () {
     },
   })
 
-  var FileDataList = Backbone.Model.extend({
+  var FileDataModel = Backbone.Model.extend({
     initialize: function () {
       var dataModel = this.get('dataModel')
       this.listenTo(dataModel, 'change:data', this.extract)
@@ -263,12 +275,13 @@ $(function () {
       var fileData = data.files[fileName]
       var functions = _.map(fileData.functions, function (functionName) {
       var functionData = data.functions[functionName]
-      var signature = genSignature(functionName, functionData, data.structs, data.enums, true)
+      var signature = genFunctionSignature(functionName, functionData, data.structs, data.enums, true)
         return { name: functionName, data: functionData, signature: signature };
       }, this)
       var vars = _.map(fileData.vars, function (varName) {
         var varData = data.vars[varName]
-          return { name: varName, data: varData, typeHtml : typeNameToHtml (varData.type, data.structs, data.enums) };
+        nameLink = '<a href=#var/' + varName + '>' + varName + '</a>'
+          return { name: varName, data: varData, varSignatureHtml : typeNameToHtml (varData.type, data.structs, data.enums, nameLink) };
         }, this)
       
       this.set('data', { functions: functions, vars: vars })
@@ -394,7 +407,7 @@ $(function () {
     },
 
     fileData: function (fileName) {
-      var model = new FileDataList({ fileName: fileName, dataModel: this.dataModel })
+      var model = new FileDataModel({ fileName: fileName, dataModel: this.dataModel })
       var view = new FileDataView({ model: model })
       this.mainView.setActive(view)
     },

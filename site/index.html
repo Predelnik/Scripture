@@ -147,14 +147,34 @@
 <script type="text/template" id="file-data-list-template">
   <h1>Functions</h1>
   <% _.each(functions, function(func) { %>
-    <h2><%= func.data.address %></h2>
+    <h3><%= func.data.address %></h3>
     <h4><%= func.signature %></h4>
   <% }) %>
   <h1>Variables</h1>
-  <% _.each(vars, function(variable) { %>
-    <h2><%= variable.data.address %></h2>
-    <h4><%= variable.typeHtml %>&nbsp;<a href="#variable/<%= variable.name %>"><%= variable.name %></a></h4>
+  <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'readonly'; }) %>
+  <% if (filtered.length > 0) { %>
+  <h2>Read-Only</h2>
+  <% _.each (filtered, function(variable) { %>
+    <h3><%= variable.data.address %></h3>
+    <h4><%= variable.varSignatureHtml %></h4>
   <% }) %>
+  <% } %>
+  <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'readwrite'; }) %>
+  <% if (filtered.length > 0) { %>
+  <h2>Read-Write</h2>
+  <% _.each (filtered, function(variable) { %>
+    <h3><%= variable.data.address %></h3>
+    <h4><%= variable.varSignatureHtml %></h4>
+  <% }) %>
+  <% } %>
+  <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'uninitialized'; }) %>
+  <% if (filtered.length > 0) { %>
+  <h2>Uninitialized</h2>
+  <% _.each (filtered, function(variable) { %>
+    <h3><%= variable.data.address %></h3>
+    <h4><%= variable.varSignatureHtml %></h4>
+  <% }) %>
+  <% } %>
 </script>
 
 <script type="text/template" id="main-menu-template">
