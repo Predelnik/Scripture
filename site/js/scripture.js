@@ -26,6 +26,14 @@ $(function () {
       return prefix + name + stars + extents
   }
 
+  var htmlizeLinksInComment = function (text) {
+    if (!text)
+      return text
+    var re = /((http)s?:\/+(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9\(\)@:%_\+.~#?&//=]*))/g
+    text = text.replace (re, "<a href=$1>$1</a>")
+    return text
+  }
+
   var genFunctionSignature = function (functionName, data, structs, enums, includeLink) {
     if (includeLink)
       functionName = '<a href=#function/' + functionName + '>' + functionName + '</a>'
@@ -47,6 +55,7 @@ $(function () {
       var data = dataModel.get('data')
       var structName = this.get('structName')
       var structData = data.structs[structName]
+      structData.explanation = htmlizeLinksInComment (structData.explanation)
       _.each (structData.members, function (member){
         member.typeHtml = typeNameToHtml (member.type, data.structs, data.enums)
       })
@@ -80,6 +89,7 @@ $(function () {
       var data = dataModel.get('data')
       var enumName = this.get('enumName')
       var enumData = data.enums[enumName]
+      enumData.explanation = htmlizeLinksInComment (enumData.explanation)
       this.set('data', { enumName: enumName, enumData: enumData})
     },
   })
@@ -213,6 +223,7 @@ $(function () {
       var data = dataModel.get('data')
       var name = this.get('name')
       var functionData = data.functions[name]
+      functionData.explanation = htmlizeLinksInComment (functionData.explanation)
       this.set('data', { name: name, data: functionData, signature: genFunctionSignature (name, functionData, data.structs, data.enums, false)})
     },
   })
