@@ -2,8 +2,18 @@ $(function () {
 
   var typeNameToHtml = function (typeName, structs, enums, varName = '') {
       lastChar = typeName.charAt(typeName.length - 1)
-      var re = /(const\s*)?([^\[\]\*\s]+)(?:\s*)(\**)(\[\d+\]*)?/g
-      var match = re.exec (typeName)
+      var funcPtrPatten = /([a-zA-z]*)\s*\(\*\)\((?:([a-zA-z\*]*),\s*)*([a-zA-z\*]*)?\)/g
+      var match = funcPtrPatten.exec (typeName)
+      if (match) {
+        firstUndef = _.findIndex (match, function (data){ return !data })
+        if (varName)
+          return match[1] + ' (*' + varName + ') (' + match.slice (2, firstUndef).join (', ') + ')'
+        else
+          return match[1] + ' (*) (' + match.slice (2, firstUndef).join (', ') + ')'
+      }
+
+      var usualPattern = /(const\s*)?([^\[\]\*\s]+)(?:\s*)(\**)(\[\d+\]*)?/g
+      var match = usualPattern.exec (typeName)
       var prefix = match[1] ? match[1] : ''
       var name = match[2]
       var stars = match[3] ? match[3] : ''
