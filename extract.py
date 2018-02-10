@@ -112,6 +112,9 @@ def fill_enum_struct_comment_data (comment, info):
 	for line in comment_to_lines (comment):
 		if line == 'References:':
 			break
+		elif line == 'bitflag':
+			info['bitflag'] = True
+			break
 		elif line == 'PSX def:':
 			target = 'psx_def'
 			continue
