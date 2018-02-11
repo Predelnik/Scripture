@@ -41,6 +41,14 @@ def append_to_set_in_dict (dict, field_list, value):
 	else:
 		dict[last_field] = {value}
 
+def type_spelling (type):
+	# it's unclear if this extraction could be done through clang.cindex:
+	spelling = type.spelling
+	for part in ['enum ', 'struct ']:
+		if spelling.startswith (part):
+			spelling = spelling[len (part):]
+	return spelling
+
 def add_reference_if_needed (data, source_type, source_name, type):
 	#print ('Try:')
 	#print (type.kind)
@@ -60,11 +68,7 @@ def add_reference_if_needed (data, source_type, source_name, type):
 	elif simplified_type.kind == TypeKind.ENUM:
 		dest = 'enums'
 	if dest:
-		spelling = simplified_type.spelling
-		# it's unclear if this extraction could be done through clang.cindex:
-		for part in ['enum ', 'struct ']:
-			if spelling.startswith (part):
-				spelling = spelling[len (part):]
+		spelling = type_spelling (simplified_type)
 		#print (simplified_type.kind)
 		#print (spelling)
 		append_to_set_in_dict (data, [dest, spelling, 'referenced_in', source_type], source_name)
@@ -162,7 +166,7 @@ def extract_struct_members(data, node, info, name): # TODO: support comments for
 	for child in node.get_children():
 		member_info = {}
 		member_info['name'] = child.spelling
-		member_info['type'] = child.type.spelling
+		member_info['type'] = type_spelling (child.type)
 		extract_struct_member_comment (child.raw_comment, member_info)
 		info['members'].append (member_info)
 		add_reference_if_needed (data, 'structs', name, child.type)
