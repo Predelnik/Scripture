@@ -42,11 +42,16 @@ def append_to_set_in_dict (dict, field_list, value):
 		dict[last_field] = {value}
 
 def add_reference_if_needed (data, source_type, source_name, type):
+	#print ('Try:')
+	#print (type.kind)
+	#print (type.spelling)
 	simplified_type = type
-	if simplified_type.kind == TypeKind.POINTER:
-		simplified_type = simplified_type.get_pointee ()
-	if simplified_type.kind == TypeKind.CONSTANTARRAY:
+	while simplified_type.kind == TypeKind.CONSTANTARRAY:
 		simplified_type = simplified_type.get_array_element_type ()
+	while simplified_type.kind == TypeKind.POINTER:
+		simplified_type = simplified_type.get_pointee ()
+	if simplified_type.kind == TypeKind.ELABORATED:
+		simplified_type = simplified_type.get_named_type ()
 	if simplified_type.kind == TypeKind.TYPEDEF:
 		simplified_type = simplified_type.get_canonical ()
 	dest = None
@@ -55,7 +60,14 @@ def add_reference_if_needed (data, source_type, source_name, type):
 	elif simplified_type.kind == TypeKind.ENUM:
 		dest = 'enums'
 	if dest:
-		append_to_set_in_dict (data, [dest, simplified_type.spelling, 'referenced_in', source_type], source_name)
+		spelling = simplified_type.spelling
+		# it's unclear if this extraction could be done through clang.cindex:
+		for part in ['enum ', 'struct ']:
+			if spelling.startswith (part):
+				spelling = spelling[len (part):]
+		#print (simplified_type.kind)
+		#print (spelling)
+		append_to_set_in_dict (data, [dest, spelling, 'referenced_in', source_type], source_name)
 
 def extract_function_args(node, info, data): # TODO: support comments for each argument
 	info['args'] = []
