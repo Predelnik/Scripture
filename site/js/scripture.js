@@ -69,7 +69,7 @@ $(function () {
       _.each (structData.members, function (member){
         member.typeHtml = typeNameToHtml (member.type, data.structs, data.enums)
       })
-      this.set('data', { structName: structName, structData: structData})
+      this.set('data', { structName: structName, structData: structData, github: data.github_root})
     },
   })
 
@@ -100,7 +100,7 @@ $(function () {
       var enumName = this.get('enumName')
       var enumData = data.enums[enumName]
       enumData.explanation = htmlizeLinksInComment (enumData.explanation)
-      this.set('data', { enumName: enumName, enumData: enumData})
+      this.set('data', { enumName: enumName, enumData: enumData, github: data.github_root})
     },
   })
 
@@ -234,7 +234,8 @@ $(function () {
       var name = this.get('name')
       var functionData = data.functions[name]
       functionData.explanation = htmlizeLinksInComment (functionData.explanation)
-      this.set('data', { name: name, data: functionData, signature: genFunctionSignature (name, functionData, data.structs, data.enums, false)})
+      this.set('data', { name: name, data: functionData, signature: genFunctionSignature (name, functionData, data.structs, data.enums, false),
+      github: data.github_root})
     },
   })
 
@@ -264,7 +265,8 @@ $(function () {
       var data = dataModel.get('data')
       var name = this.get('name')
       var varData = data.vars[name]
-      this.set('data', { name: name, data: varData, typeHtml: typeNameToHtml (varData.type, data.structs, data.enums)})
+      varData.explanation = htmlizeLinksInComment (varData.explanation)
+      this.set('data', { name: name, data: varData, typeHtml: typeNameToHtml (varData.type, data.structs, data.enums), github: data.github_root})
     },
   })
 

@@ -161,6 +161,7 @@ def extract_struct(data, node, name):
 	info['extracted'] = True
 	extract_struct_members(data, node, info, name)
 	data['structs'][name] = info
+	return data['structs'][name]
 
 def extract_enum_members(node, info): # TODO: support comments for each argument
 	info['members'] = []
@@ -177,7 +178,7 @@ def extract_enum(data, node, name):
 	fill_enum_struct_comment_data (node.raw_comment, info)
 	extract_enum_members(node, info)
 	data['enums'][name] = info
-	return data
+	return data['enums'][name]
 
 def extract_var (data, node):
 	comment = node.raw_comment
@@ -199,32 +200,33 @@ def extract_var (data, node):
 	data['vars'][node.spelling] = info
 	return data['vars'][node.spelling]
 
-def extract(data, node, filepath, short_filename):
+def extract(data, node, filepath, short_filename, full_filename):
 	if str (node.location.file) == filepath: # not parsing cursors from other headers
+		info = None
 		if node.kind == CursorKind.FUNCTION_DECL:
 			func_data = extract_function(data, node)
-			func_data['file_name'] = short_filename
+			func_data['short_file_name'] = short_filename
+			func_data['full_file_name'] = full_filename
 			append_to_set_in_dict (data, ['files', short_filename, 'functions'], node.spelling)
-			return
+			info = func_data
 		elif node.kind == CursorKind.STRUCT_DECL:
 			if node.spelling:
-				extract_struct(data, node, node.spelling)
-			return
+				info = extract_struct(data, node, node.spelling)
 		elif node.kind == CursorKind.ENUM_DECL:
-			extract_enum(data, node, node.spelling)
-			return
+			info = extract_enum(data, node, node.spelling)
 		elif node.kind == CursorKind.VAR_DECL:
 			var_data = extract_var (data, node)
-			var_data['file_name'] = short_filename
+			var_data['short_file_name'] = short_filename
+			var_data['full_file_name'] = full_filename
 			if 'rdata' in filepath:
 				var_data['category'] = 'readonly'
 			elif 'data' in filepath:
 				var_data['category'] = 'readwrite'
 			else:
-				var_data['category'] = 'unitialized'
+				var_data['category'] = 'uninitialized'
 			# TODO: separate const/non-const etc.
 			append_to_set_in_dict (data, ['files', short_filename, 'vars'], node.spelling)
-			return
+			info = var_data
 		elif node.kind == CursorKind.TYPEDEF_DECL:
 			children = node.get_children()
 			try:
@@ -233,20 +235,22 @@ def extract(data, node, filepath, short_filename):
 				return
 			# resolving instantly typedef structs just as normal structs
 			if first_child.kind == CursorKind.STRUCT_DECL:
-				extract_struct(data, first_child, node.spelling)
-				return
+				info = extract_struct(data, first_child, node.spelling)
 			elif first_child.kind == CursorKind.ENUM_DECL:
-				extract_enum(data, first_child, node.spelling)
-				return
+				info = extract_enum(data, first_child, node.spelling)
+		if info:
+			info['full_file_name'] = full_filename
+			info['line'] = node.extent.start.line
+			return
 	for child in node.get_children():
-		extract(data, child, filepath, short_filename)
+		extract(data, child, filepath, short_filename, full_filename)
 	return data
 
 def extract_file (params):
 	data = defaultdict (dict_gen)
 	index = clang.cindex.Index.create()
 	tu = index.parse(params['full_path'], params['args'], options = TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD )
-	extract (data, tu.cursor, params['full_path'], params['short_filename'])
+	extract (data, tu.cursor, params['full_path'], params['short_filename'], params['full_filename'])
 	return data
 
 def merge_to_dict (target, source):
@@ -275,6 +279,7 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	parser.add_argument('-v', '--verbose', action="store_true", dest="verbose", help="Verbose output", default=False)
 	parser.add_argument('--args',  dest='args', action="store", help='Arguments for clang')
+	parser.add_argument('--github-root', dest='github_root', action="store", help='GitHub root used for links')
 	parser.add_argument('target_path', action="store", help='Target path')
 	options = parser.parse_args()
 
@@ -286,7 +291,7 @@ if __name__ == '__main__':
 			if not filename.endswith (('.cpp', '.h')):
 				continue
 			full_path = os.path.join (root, filename)
-			file_name_list.append ({'full_path': full_path, 'short_filename' : filename, 'args' : args} )
+			file_name_list.append ({'full_path': full_path, 'short_filename' : filename, 'full_filename' : os.path.relpath (full_path, options.target_path), 'args' : args} )
 
 	pool = multiprocessing.Pool ()
 	#results = list (map(extract_file, file_name_list))
@@ -299,6 +304,8 @@ if __name__ == '__main__':
 	for name in list (structs.keys ()):
 		if not 'extracted' in structs[name]:
 			del structs[name]
+	data['github_root'] = options.github_root
 	target_path = os.path.join (os.path.dirname(os.path.realpath(__file__)), 'site/data/data.json')
 	os.makedirs (os.path.dirname (target_path), exist_ok=True)
 	json.dump (data, open (target_path, "w"), cls=SetEncoder)
+	print ('{} updated successfully!'.format (target_path))
