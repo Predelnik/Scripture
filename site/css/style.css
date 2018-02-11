@@ -117,15 +117,28 @@ table.structMembers td, th {
   padding: 5px;
 }
 
-table.structMembers {
+table.enumTable td, th {
+  border: 1px solid black;
+  padding: 5px;
+}
+
+td.enumMemberName {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 40em;
+  white-space: nowrap;
+}
+
+td.enumComment {
+  max-width: 15em
+}
+
+table.enumTable {
   border-collapse: collapse;
 }
 
-table.enumTable td {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  max-width: 45em;
-  white-space: nowrap;
+table.structMembers {
+  border-collapse: collapse;
 }
 
 table.methods {

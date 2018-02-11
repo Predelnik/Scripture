@@ -71,8 +71,9 @@
   <% } %>
   <h2>Values:</h2>
   <table class="enumTable">
+  <tr><th>Name</th><th>Value</th><th>Comments</th></tr>
   <% _.each(enumData.members, function(member) { %>
-    <tr><td><%= member.name %></td><td>=</td><td><%= !enumData.bitflag ? member.value : '0x' + member.value.toString (16) %></td><td><%= member.explanation %></td></tr>
+    <tr><td class="enumMemberName"><%= member.name %></td><td><%= !enumData.bitflag ? member.value : '0x' + member.value.toString (16) %></td><td class="enumComment"><%= member.explanation %></td></tr>
   <% }) %>
   </table>
   <% if (enumData.referenced_in) { %>
