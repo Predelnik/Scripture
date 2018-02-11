@@ -378,7 +378,7 @@ $(function () {
       this.load()
     },
     load: function () {
-      $.getJSON('../data/data.json').then(function (data) {
+      $.getJSON('data/data.json').then(function (data) {
         dataModel.set({ data: data })
       })
     },
