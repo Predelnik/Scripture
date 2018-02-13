@@ -30,7 +30,7 @@ $(function () {
           return prefix + htmlPrefix + name + '>' + name + '</a>' + stars + varName + extents
         else
           return prefix + htmlPrefix + name + '>' + name + '</a>' + stars + extents
-          
+
       if (varName)
         return prefix + name + stars + varName + extents
       return prefix + name + stars + extents
@@ -53,6 +53,15 @@ $(function () {
     }).join(', ') + ')'
   }
 
+  var genGithubLink = function (data, info) {
+    if (!data.github_root)
+      return null
+
+    sha1 = data.github_sha1 ? data.github_sha1 : 'master'
+    link = '<a href="' + data.github_root + sha1 + '/' + info.full_file_name + '#L' + info.line + '">' + info.full_file_name + '</a>'
+    return link
+  }
+
   var structModel = Backbone.Model.extend({
     initialize: function () {
       var dataModel = this.get('dataModel')
@@ -69,7 +78,7 @@ $(function () {
       _.each (structData.members, function (member){
         member.typeHtml = typeNameToHtml (member.type, data.structs, data.enums)
       })
-      this.set('data', { structName: structName, structData: structData, github: data.github_root})
+      this.set('data', { structName: structName, structData: structData, github_link:genGithubLink (data, structData)})
     },
   })
 
@@ -100,7 +109,7 @@ $(function () {
       var enumName = this.get('enumName')
       var enumData = data.enums[enumName]
       enumData.explanation = htmlizeLinksInComment (enumData.explanation)
-      this.set('data', { enumName: enumName, enumData: enumData, github: data.github_root})
+      this.set('data', { enumName: enumName, enumData: enumData, github_link:genGithubLink (data, enumData)})
     },
   })
 
@@ -235,7 +244,7 @@ $(function () {
       var functionData = data.functions[name]
       functionData.explanation = htmlizeLinksInComment (functionData.explanation)
       this.set('data', { name: name, data: functionData, signature: genFunctionSignature (name, functionData, data.structs, data.enums, false),
-      github: data.github_root})
+      github_link:genGithubLink (data, functionData)})
     },
   })
 
@@ -266,7 +275,7 @@ $(function () {
       var name = this.get('name')
       var varData = data.vars[name]
       varData.explanation = htmlizeLinksInComment (varData.explanation)
-      this.set('data', { name: name, data: varData, typeHtml: typeNameToHtml (varData.type, data.structs, data.enums), github: data.github_root})
+      this.set('data', { name: name, data: varData, typeHtml: typeNameToHtml (varData.type, data.structs, data.enums), github_link:genGithubLink (data, varData)})
     },
   })
 
@@ -306,7 +315,7 @@ $(function () {
         nameLink = '<a href=#variable/' + varName + '>' + varName + '</a>'
           return { name: varName, data: varData, varSignatureHtml : typeNameToHtml (varData.type, data.structs, data.enums, nameLink) };
         }, this)
-      
+
       this.set('data', { functions: functions, vars: vars, fileName: fileName })
     },
   })

@@ -60,9 +60,9 @@
     </table>
     <% } %>
   <% } %>
-  <% if (github) { %>
+  <% if (github_link) { %>
     <h2>Source</h2>
-    <a href="<%=github%>/<%=structData.full_file_name%>#L<%=structData.line%>"><%= structData.full_file_name %></a>
+    <%=github_link%>
   <% } %>
 </script>
 
@@ -107,9 +107,9 @@
       </table>
       <% } %>
     <% } %>
-    <% if (github) { %>
+    <% if (github_link) { %>
       <h2>Source</h2>
-      <a href="<%=github%>/<%=enumData.full_file_name%>#L<%=enumData.line%>"><%= enumData.full_file_name %></a>
+      <%=github_link%>
     <% } %>
 </script>
 
@@ -137,9 +137,9 @@
       <% if (data.psx_def) { %><tr><td>PSX Def:</td><td><%= data.psx_def %></td></tr> <% } %>
     </table>
   </p>
-  <% if (github) { %>
+  <% if (github_link) { %>
     <h2>Source</h2>
-    <a href="<%=github%>/<%=data.full_file_name%>#L<%=data.line%>"><%= data.full_file_name %></a>
+    <%=github_link%>
   <% } %>
 </script>
 
@@ -155,9 +155,9 @@
       <% if (data.psx_def) { %><tr><td>PSX Def:</td><td><%= data.psx_def %></td></tr> <% } %>
     </table>
   </p>
-  <% if (github) { %>
+  <% if (github_link) {  %>
     <h2>Source</h2>
-    <a href="<%=github%>/<%=data.full_file_name%>#L<%=data.line%>"><%= data.full_file_name %></a>
+    <%=github_link%>
   <% } %>
 </script>
 

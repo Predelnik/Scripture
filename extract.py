@@ -296,6 +296,7 @@ if __name__ == '__main__':
 	parser.add_argument('-v', '--verbose', action="store_true", dest="verbose", help="Verbose output", default=False)
 	parser.add_argument('--args',  dest='args', action="store", help='Arguments for clang')
 	parser.add_argument('--github-root', dest='github_root', action="store", help='GitHub root used for links')
+	parser.add_argument('--github-sha1', dest='github_sha1', action="store", help='GitHub revision sha1. Used for permanent links')
 	parser.add_argument('target_path', action="store", help='Target path')
 	options = parser.parse_args()
 
@@ -320,7 +321,10 @@ if __name__ == '__main__':
 	for name in list (structs.keys ()):
 		if not 'extracted' in structs[name]:
 			del structs[name]
-	data['github_root'] = options.github_root
+	if options.github_root:
+		data['github_root'] = options.github_root
+	if options.github_sha1:
+		data['github_sha1'] = options.github_sha1
 	target_path = os.path.join (os.path.dirname(os.path.realpath(__file__)), 'site/data/data.json')
 	os.makedirs (os.path.dirname (target_path), exist_ok=True)
 	json.dump (data, open (target_path, "w"), cls=SetEncoder)
