@@ -168,15 +168,22 @@ $(function () {
 
     refreshSearch: function() {
       var model = this.dataModel
-      var value = this.value
 
       var data = model.get('data')
       var searchResults = []
 
+      var containsStr = function (haystack, needle) {
+        if (!haystack)
+          return false;
+        return haystack.toLowerCase().indexOf (needle.toLowerCase()) != -1
+      }
+
+      var needle = this.value
+
       _.forEach(data.functions, function(functionData, name) {
-        if (name.search(value) > -1 || (functionData.address && functionData.address.search (value) > -1) ||
+        if (containsStr (name, needle) || containsStr (functionData.address, needle) ||
            _.findIndex (functionData.args, function (argData){
-            return argData.name.search (value) > -1;
+            return containsStr (argData.name, needle);
            }) > -1) {
         var link = 'function/' + name
         searchResults.push({url: '#' + link, name: (functionData.address ? (functionData.address + ': ') : '') + name, match: 'function', navigate: link})
@@ -185,7 +192,7 @@ $(function () {
       })
 
       _.forEach(data.vars, function(variableData, name) {
-        if (name.search(value) > -1 || (variableData.address && variableData.address.search (value) > -1)) {
+        if (containsStr (name, needle) || containsStr (variableData.address, needle)) {
         var link = 'variable/' + name
         searchResults.push({url: '#' + link, name: (variableData.address ? (variableData.address + ': ') : '') + name, match: 'variable', navigate: link})
           return
@@ -193,9 +200,9 @@ $(function () {
       })
 
       _.forEach(data.structs, function(structData, name) {
-        if (name.search(value) > -1 ||
+        if (containsStr (name, needle) ||
            _.findIndex (structData.members, function (member){
-            return member.name.search (value) > -1;
+            return containsStr (member.name, needle);
            }) > -1) {
         var link = 'struct/' + name
         searchResults.push({url: '#' + link, name: name, match: 'struct', navigate: link})
@@ -204,9 +211,9 @@ $(function () {
       })
 
       _.forEach(data.enums, function(enumData, name) {
-        if (name.search(value) > -1 ||
+        if (containsStr (name, needle) ||
            _.findIndex (enumData.members, function (member){
-            return member.name.search (value) > -1;
+            return containsStr (member.name, needle);
            }) > -1) {
         var link = 'enum/' + name
         searchResults.push({url: '#' + link, name: name, match: 'enum', navigate: link})
