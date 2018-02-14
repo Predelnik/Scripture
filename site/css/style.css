@@ -112,6 +112,11 @@ h2 small {
   color: #666;
 }
 
+h1.FunctionTitle {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 table.structMembers td, th {
   border: 1px solid black;
   padding: 5px;
