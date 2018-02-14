@@ -161,9 +161,12 @@ $(function () {
 
       this.value = newValue
       self = this
+      self.refreshSearch()
+      /*
       if (timeoutHandle)
         clearTimeout (timeoutHandle)
       timeoutHandle = setTimeout( function () { self.refreshSearch()}, 500)
+      */
     },
 
     refreshSearch: function() {
