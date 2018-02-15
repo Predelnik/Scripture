@@ -11,6 +11,6 @@ pip install -r requirements.txt
 
 #### Regeneration
 ```
-extract.py --args="-I$notes_dir" "$notes_dir" --github-root="https://github.com/sanctuary/notes/blob/master"
+extract.py --args="-I$notes_dir" "$notes_dir" --github-root="https://github.com/sanctuary/notes/blob/"
 ```
 Then copy the contents of the `site` directory to repo which is on `gh-pages` branch and push
