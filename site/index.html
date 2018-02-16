@@ -1,279 +1,268 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <title>sanctuary/notes</title>
-  <link href="shared/css/documentation.css" media="screen" rel="stylesheet" type="text/css">
-  <link href="shared/css/pygments.css" media="screen" rel="stylesheet" type="text/css">
-  <link href="css/style.css" media="screen" rel="stylesheet" type="text/css">
-  <script src="shared/js/jquery.js" type="text/javascript"></script>
-  <script src="js/json2.js" type="text/javascript"></script>
-  <script src="js/underscore.js" type="text/javascript"></script>
-  <script src="js/backbone.js" type="text/javascript"></script>
-  <script src="js/scripture.js" type="text/javascript"></script>
-</head>
-
-<script type="text/template" id="struct-template">
-  <h1>Struct <%= structName %></h1>
-  <% if (structData.size) { %>
-  <h3>Size = 0x<%= structData.size.toString(16) %></h3>
-  <% } %>
-  <pre><%= structData.explanation %></pre>
-  <% if (structData.psx_def) { %>
-  <h2>PSX Defintion:</h2>
-  <pre><%= structData.psx_def %></pre>
-  <% } %>
-  <h2>Definition:</h2>
-  <table class="structMembers">
-  <tr><% if (structData.members && structData.members[0].offset) { %><th>Offset</th><th>Size</th><% } %>
-  <th>Type</th><th>Name</th><th>Comments</th></tr>
-  <% _.each(structData.members, function(member) { %>
-    <tr><% if (structData.members && structData.members[0].offset) { %><td><%= member.offset %></td><td><%= member.size %></td><% } %>
-      <td><%= member.typeHtml %></td> <td><%= member.name %></td><td><%= member.explanation %></td></tr>
-  <% }) %>
-  </table>
-  <% if (structData.referenced_in) { %>
-  <h2>Referenced in:</h2>
-  <% if (structData.referenced_in.functions) { %>
-  <h3>Functions</h3>
-  <table> <!-- TODO: Support proper functions signatures -->
-  <% _.each(structData.referenced_in.functions, function(functionName) { %>
-    <tr><td><a href="#function/<%=functionName %>" ><%= functionName %></a></td></tr>
-  <% }) %>
-  </table>
-  <% } %>
-  <% if (structData.referenced_in.structs) { %>
-    <h3>Structs</h3>
-    <table> <!-- TODO: Support proper functions signatures -->
-    <% _.each(structData.referenced_in.structs, function(structName) { %>
-      <tr><td><a href="#struct/<%=structName %>" ><%= structName %></a></td></tr>
-    <% }) %>
-    </table>
-    <% } %>
-  <% if (structData.referenced_in.vars) { %>
-    <h3>Variables</h3>
-    <table> <!-- TODO: Support proper functions signatures -->
-    <% _.each(structData.referenced_in.vars, function(varName) { %>
-      <tr><td><a href="#variable/<%=varName %>" ><%= varName %></a></td></tr>
-    <% }) %>
-    </table>
-    <% } %>
-  <% } %>
-  <% if (github_link) { %>
-    <h2>Source</h2>
-    <%=github_link%>
-  <% } %>
-</script>
-
-<script type="text/template" id="enum-template">
-  <h1>Enum <%= enumName %></h1>
-  <pre><%= enumData.explanation %></pre>
-  <% if (enumData.psx_def) { %>
-  <h3>PSX Defintion:</h3>
-  <pre><%= enumData.psx_def %></pre>
-  <% } %>
-  <h2>Values:</h2>
-  <table class="enumTable">
-  <tr><th>Name</th><th>Value</th><th>Comments</th></tr>
-  <% _.each(enumData.members, function(member) { %>
-    <tr><td class="enumMemberName"><%= member.name %></td><td><%= !enumData.bitflag ? member.value : '0x' + Math.abs (member.value).toString (16) %></td><td class="enumComment"><%= member.explanation %></td></tr>
-  <% }) %>
-  </table>
-  <% if (enumData.referenced_in) { %>
-    <h2>Referenced in:</h2>
-    <% if (enumData.referenced_in.functions) { %>
-    <h3>Functions</h3>
-    <table> <!-- TODO: Support proper functions signatures -->
-    <% _.each(enumData.referenced_in.functions, function(functionName) { %>
-      <tr><td><a href="#function/<%=functionName %>" ><%= functionName %></a></td></tr>
-    <% }) %>
-    </table>
-    <% } %>
-    <% if (enumData.referenced_in.structs) { %>
-      <h3>Structs</h3>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+      <title>sanctuary/notes</title>
+      <link href="shared/css/documentation.css" media="screen" rel="stylesheet" type="text/css">
+      <link href="shared/css/pygments.css" media="screen" rel="stylesheet" type="text/css">
+      <link href="css/style.css" media="screen" rel="stylesheet" type="text/css">
+      <script src="shared/js/jquery.js" type="text/javascript"></script>
+      <script src="js/json2.js" type="text/javascript"></script>
+      <script src="js/underscore.js" type="text/javascript"></script>
+      <script src="js/backbone.js" type="text/javascript"></script>
+      <script src="js/scripture.js" type="text/javascript"></script>
+   </head>
+   <script type="text/template" id="struct-template">
+      <h1>Struct <%= structName %></h1>
+      <% if (structData.size) { %>
+      <h3>Size = 0x<%= structData.size.toString(16) %></h3>
+      <% } %>
+      <pre><%= structData.explanation %></pre>
+      <% if (structData.psx_def) { %>
+      <h2>PSX Defintion:</h2>
+      <pre><%= structData.psx_def %></pre>
+      <% } %>
+      <h2>Definition:</h2>
+      <table class="structMembers">
+      <tr><% if (structData.members && structData.members[0].offset) { %><th>Offset</th><th>Size</th><% } %>
+      <th>Type</th><th>Name</th><th>Comments</th></tr>
+      <% _.each(structData.members, function(member) { %>
+        <tr><% if (structData.members && structData.members[0].offset) { %><td><%= member.offset %></td><td><%= member.size %></td><% } %>
+          <td><%= member.typeHtml %></td> <td><%= member.name %></td><td><%= member.explanation %></td></tr>
+      <% }) %>
+      </table>
+      <% if (structData.referenced_in) { %>
+      <h2>Referenced in:</h2>
+      <% if (structData.referenced_in.functions) { %>
+      <h3>Functions</h3>
       <table> <!-- TODO: Support proper functions signatures -->
-      <% _.each(enumData.referenced_in.structs, function(structName) { %>
-        <tr><td><a href="#struct/<%=structName %>" ><%= structName %></a></td></tr>
+      <% _.each(structData.referenced_in.functions, function(functionName) { %>
+        <tr><td><a href="#function/<%=functionName %>" ><%= functionName %></a></td></tr>
       <% }) %>
       </table>
       <% } %>
-    <% if (enumData.referenced_in.vars) { %>
-      <h3>Variables</h3>
-      <table> <!-- TODO: Support proper functions signatures -->
-      <% _.each(enumData.referenced_in.vars, function(varName) { %>
-        <tr><td><a href="#variable/<%=varName %>" ><%= varName %></a></td></tr>
+      <% if (structData.referenced_in.structs) { %>
+        <h3>Structs</h3>
+        <table> <!-- TODO: Support proper functions signatures -->
+        <% _.each(structData.referenced_in.structs, function(structName) { %>
+          <tr><td><a href="#struct/<%=structName %>" ><%= structName %></a></td></tr>
+        <% }) %>
+        </table>
+        <% } %>
+      <% if (structData.referenced_in.vars) { %>
+        <h3>Variables</h3>
+        <table> <!-- TODO: Support proper functions signatures -->
+        <% _.each(structData.referenced_in.vars, function(varName) { %>
+          <tr><td><a href="#variable/<%=varName %>" ><%= varName %></a></td></tr>
+        <% }) %>
+        </table>
+        <% } %>
+      <% } %>
+      <% if (github_link) { %>
+        <h2>Source</h2>
+        <%=github_link%>
+      <% } %>
+   </script>
+   <script type="text/template" id="enum-template">
+      <h1>Enum <%= enumName %></h1>
+      <pre><%= enumData.explanation %></pre>
+      <% if (enumData.psx_def) { %>
+      <h3>PSX Defintion:</h3>
+      <pre><%= enumData.psx_def %></pre>
+      <% } %>
+      <h2>Values:</h2>
+      <table class="enumTable">
+      <tr><th>Name</th><th>Value</th><th>Comments</th></tr>
+      <% _.each(enumData.members, function(member) { %>
+        <tr><td class="enumMemberName"><%= member.name %></td><td><%= !enumData.bitflag ? member.value : '0x' + Math.abs (member.value).toString (16) %></td><td class="enumComment"><%= member.explanation %></td></tr>
       <% }) %>
       </table>
+      <% if (enumData.referenced_in) { %>
+        <h2>Referenced in:</h2>
+        <% if (enumData.referenced_in.functions) { %>
+        <h3>Functions</h3>
+        <table> <!-- TODO: Support proper functions signatures -->
+        <% _.each(enumData.referenced_in.functions, function(functionName) { %>
+          <tr><td><a href="#function/<%=functionName %>" ><%= functionName %></a></td></tr>
+        <% }) %>
+        </table>
+        <% } %>
+        <% if (enumData.referenced_in.structs) { %>
+          <h3>Structs</h3>
+          <table> <!-- TODO: Support proper functions signatures -->
+          <% _.each(enumData.referenced_in.structs, function(structName) { %>
+            <tr><td><a href="#struct/<%=structName %>" ><%= structName %></a></td></tr>
+          <% }) %>
+          </table>
+          <% } %>
+        <% if (enumData.referenced_in.vars) { %>
+          <h3>Variables</h3>
+          <table> <!-- TODO: Support proper functions signatures -->
+          <% _.each(enumData.referenced_in.vars, function(varName) { %>
+            <tr><td><a href="#variable/<%=varName %>" ><%= varName %></a></td></tr>
+          <% }) %>
+          </table>
+          <% } %>
+        <% } %>
+        <% if (github_link) { %>
+          <h2>Source</h2>
+          <%=github_link%>
+        <% } %>
+   </script>
+   <script type="text/template" id="search-template">
+      <h1>Search Results</h1>
+      <table>
+      <% _.each(results, function(result) { %>
+      <tr>
+      <td><a href="<%= result.url %>"><%= result.name %></a></td>
+      <td><%= result.match %></td>
+      </tr>
+      <% }) %>
+      </table>
+   </script>
+   <script type="text/template" id="function-template">
+      <h1 class="FunctionTitle">Function <%= name %></h1>
+      <h3> <%= signature %> </h3>
+      <pre><%= data.explanation %></pre>
+      <p>
+      <table>
+          <tr><td>File:</td><td><a href="#fileData/<%= data.short_file_name %>"><%= data.short_file_name %></a></td></tr>
+          <tr><td>Address:</td><td><%= data.address %></td></tr>
+          <% if (data.psx_ref) { %> <tr><td>PSX Ref:</td><td><%= data.psx_ref %> </td></tr> <% } %>
+          <% if (data.psx_def) { %><tr><td>PSX Def:</td><td><%= data.psx_def %></td></tr> <% } %>
+        </table>
+      </p>
+      <% if (github_link) { %>
+        <h2>Source</h2>
+        <%=github_link%>
       <% } %>
-    <% } %>
-    <% if (github_link) { %>
-      <h2>Source</h2>
-      <%=github_link%>
-    <% } %>
-</script>
-
-<script type="text/template" id="search-template">
-  <h1>Search Results</h1>
-  <table>
-<% _.each(results, function(result) { %>
-<tr>
-<td><a href="<%= result.url %>"><%= result.name %></a></td>
-<td><%= result.match %></td>
-</tr>
-<% }) %>
-  </table>
-</script>
-
-<script type="text/template" id="function-template">
-  <h1 class="FunctionTitle">Function <%= name %></h1>
-  <h3> <%= signature %> </h3>
-  <pre><%= data.explanation %></pre>
-  <p>
-  <table>
-      <tr><td>File:</td><td><a href="#fileData/<%= data.short_file_name %>"><%= data.short_file_name %></a></td></tr>
-      <tr><td>Address:</td><td><%= data.address %></td></tr>
-      <% if (data.psx_ref) { %> <tr><td>PSX Ref:</td><td><%= data.psx_ref %> </td></tr> <% } %>
-      <% if (data.psx_def) { %><tr><td>PSX Def:</td><td><%= data.psx_def %></td></tr> <% } %>
-    </table>
-  </p>
-  <% if (github_link) { %>
-    <h2>Source</h2>
-    <%=github_link%>
-  <% } %>
-</script>
-
-<script type="text/template" id="variable-template">
-  <h1>Variable <%= name %></h1>
-  <pre><%= data.explanation %></pre>
-  <p>
-  <table>
-      <tr><td>Type:</td> <td> <%= typeHtml %></td> </h3>
-      <tr><td>File:</td><td><a href="#fileData/<%= data.short_file_name %>"><%= data.short_file_name %></a></td></tr>
-      <tr><td>Address:</td><td><%= data.address %></td></tr>
-      <% if (data.psx_ref) { %> <tr><td>PSX Ref:</td><td><%= data.psx_ref %> </td></tr> <% } %>
-      <% if (data.psx_def) { %><tr><td>PSX Def:</td><td><%= data.psx_def %></td></tr> <% } %>
-    </table>
-  </p>
-  <% if (github_link) {  %>
-    <h2>Source</h2>
-    <%=github_link%>
-  <% } %>
-</script>
-
-<script type="text/template" id="file-data-list-template">
-  <h1>File `<%= fileName %>`</h1>
-  <% if (functions.length > 0) { %>
-  <h2 class="fileDataGroup">Functions:</h2>
-  <% _.each(_.sortBy (functions, function (func){ return func.data.address}), function(func) { %>
-    <h3><%= func.data.address %></h3>
-    <h4><%= func.signature %></h4>
-  <% }) %>
-  <% } %>
-  <% if (vars.length > 0) { %>
-  <h2 class="fileDataGroup">Variables:</h2>
-  <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'readonly'; }) %>
-  <% filtered = _.sortBy (filtered, function (variable) { return variable.data.address; }) %>
-  <% if (filtered.length > 0) { %>
-  <h3 class="varGroup">Read-Only:</h3>
-  <% _.each (filtered, function(variable) { %>
-    <h3><%= variable.data.address %></h3>
-    <h4><%= variable.varSignatureHtml %></h4>
-  <% }) %>
-  <% } %>
-  <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'readwrite'; }) %>
-  <% filtered = _.sortBy (filtered, function (variable) { return variable.data.address; }) %>
-  <% if (filtered.length > 0) { %>
-  <h3 class="varGroup">Read-Write:</h3>
-  <% _.each (filtered, function(variable) { %>
-    <h3><%= variable.data.address %></h3>
-    <h4><%= variable.varSignatureHtml %></h4>
-  <% }) %>
-  <% } %>
-  <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'uninitialized'; }) %>
-  <% filtered = _.sortBy (filtered, function (variable) { return variable.data.address; }) %>
-  <% if (filtered.length > 0) { %>
-  <h3 class="varGroup">Uninitialized:</h3>
-  <% _.each (filtered, function(variable) { %>
-    <h3><%= variable.data.address %></h3>
-    <h4><%= variable.varSignatureHtml %></h4>
-  <% }) %>
-  <% } %>
-  <% } %>
-</script>
-
-<script type="text/template" id="main-menu-template">
-        <h3><a href="#">Files</a></h3>
-        <ul>
-    <% _.each(files, function(file_data, file_name) { %>
-    <li>
+   </script>
+   <script type="text/template" id="variable-template">
+      <h1>Variable <%= name %></h1>
+      <pre><%= data.explanation %></pre>
+      <p>
+      <table>
+          <tr><td>Type:</td> <td> <%= typeHtml %></td> </h3>
+          <tr><td>File:</td><td><a href="#fileData/<%= data.short_file_name %>"><%= data.short_file_name %></a></td></tr>
+          <tr><td>Address:</td><td><%= data.address %></td></tr>
+          <% if (data.psx_ref) { %> <tr><td>PSX Ref:</td><td><%= data.psx_ref %> </td></tr> <% } %>
+          <% if (data.psx_def) { %><tr><td>PSX Def:</td><td><%= data.psx_def %></td></tr> <% } %>
+        </table>
+      </p>
+      <% if (github_link) {  %>
+        <h2>Source</h2>
+        <%=github_link%>
+      <% } %>
+   </script>
+   <script type="text/template" id="file-data-list-template">
+      <h1>File `<%= fileName %>`</h1>
+      <% if (functions.length > 0) { %>
+      <h2 class="fileDataGroup">Functions:</h2>
+      <% _.each(_.sortBy (functions, function (func){ return func.data.address}), function(func) { %>
+        <h3><%= func.data.address %></h3>
+        <h4><%= func.signature %></h4>
+      <% }) %>
+      <% } %>
+      <% if (vars.length > 0) { %>
+      <h2 class="fileDataGroup">Variables:</h2>
+      <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'readonly'; }) %>
+      <% filtered = _.sortBy (filtered, function (variable) { return variable.data.address; }) %>
+      <% if (filtered.length > 0) { %>
+      <h3 class="varGroup">Read-Only:</h3>
+      <% _.each (filtered, function(variable) { %>
+        <h3><%= variable.data.address %></h3>
+        <h4><%= variable.varSignatureHtml %></h4>
+      <% }) %>
+      <% } %>
+      <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'readwrite'; }) %>
+      <% filtered = _.sortBy (filtered, function (variable) { return variable.data.address; }) %>
+      <% if (filtered.length > 0) { %>
+      <h3 class="varGroup">Read-Write:</h3>
+      <% _.each (filtered, function(variable) { %>
+        <h3><%= variable.data.address %></h3>
+        <h4><%= variable.varSignatureHtml %></h4>
+      <% }) %>
+      <% } %>
+      <% filtered = _.filter (vars, function (variable) { return variable.data.category == 'uninitialized'; }) %>
+      <% filtered = _.sortBy (filtered, function (variable) { return variable.data.address; }) %>
+      <% if (filtered.length > 0) { %>
+      <h3 class="varGroup">Uninitialized:</h3>
+      <% _.each (filtered, function(variable) { %>
+        <h3><%= variable.data.address %></h3>
+        <h4><%= variable.varSignatureHtml %></h4>
+      <% }) %>
+      <% } %>
+      <% } %>
+   </script>
+   <script type="text/template" id="main-menu-template">
+      <h3><a href="#">Files</a></h3>
+      <ul>
+      <% _.each(files, function(file_data, file_name) { %>
+      <li>
       <a href="#fileData/<%= file_name %>"><%= file_name %></a>
-    </li>
-    <% }) %>
-       </ul>
-    <h3><a href="#">Structs</a></h3>
-    <ul>
-    <% _.each(structs, function(struct_data, struct_name) { %>
-    <li>
+      </li>
+      <% }) %>
+      </ul>
+      <h3><a href="#">Structs</a></h3>
+      <ul>
+      <% _.each(structs, function(struct_data, struct_name) { %>
+      <li>
       <a href="#struct/<%= struct_name %>"><%= struct_name %></a>
-    </li>
-    <% }) %>
-  </ul>
-    <h3><a href="#">Enums</a></h3>
-    <ul>
-    <% _.each(enums, function(enum_data, enum_name) { %>
-    <li>
+      </li>
+      <% }) %>
+      </ul>
+      <h3><a href="#">Enums</a></h3>
+      <ul>
+      <% _.each(enums, function(enum_data, enum_name) { %>
+      <li>
       <a href="#enum/<%= enum_name %>"><%= enum_name %></a>
-    </li>
-    <% }) %>
-    </ul>
-</script>
-
-<script type="text/template" id="search-template">
-  <h1>Search Results</h1>
-  <table>
-<% _.each(results, function(result) { %>
-<tr>
-<td><a href="<%= result.url %>"><%= result.name %></a></td>
-<td><%= result.match %></td>
-</tr>
-<% }) %>
-  </table>
-</script>
-
-<body class="documentation">
-
-  <div id="not-footer">
-    <div id="header-wrapper">
-      <div id="header">
-        <div>
-          <a class="logo" href="#" id="site-title">sanctuary/notes</a>
-          <ul class="nav">
-            <li><input type="text" class="search" id="search-field" name="q" autocomplete="off"></li>
-          </ul>
-        </div>
-        <a href="#" id="site-logo">
-          <img class="logo" id="img-logo" src="" alt="">
-        </a>
-      </div><!-- #header -->
-  </div><!-- #header-wrapper -->
-
-  <div id="wrapper">
-    <div id="content" class="content"></div>
-    <div id="js-help-sidebar" class="sidebar-shell">
-      <div class="sidebar-module">
-        <ul class="subgroup" id="main-menu">
-          <li>
-            <h3>
-              <a>Loading...</a>
-            </h3>
-          </li>
-        </ul>
+      </li>
+      <% }) %>
+      </ul>
+   </script>
+   <script type="text/template" id="search-template">
+      <h1>Search Results</h1>
+      <table>
+      <% _.each(results, function(result) { %>
+      <tr>
+      <td><a href="<%= result.url %>"><%= result.name %></a></td>
+      <td><%= result.match %></td>
+      </tr>
+      <% }) %>
+      </table>
+   </script>
+   <body class="documentation">
+      <div id="not-footer">
+      <div id="header-wrapper">
+         <div id="header">
+            <div>
+               <a class="logo" href="#" id="site-title">sanctuary/notes</a>
+               <ul class="nav">
+                  <li><input type="text" class="search" id="search-field" name="q" autocomplete="off"></li>
+               </ul>
+            </div>
+            <a href="#" id="site-logo">
+            <img class="logo" id="img-logo" src="" alt="">
+            </a>
+         </div>
+         <!-- #header -->
       </div>
-      <!-- /sidebar-module -->
-    </div>
-    <!-- /sidebar-shell -->
-  </div>
-</body>
-
+      <!-- #header-wrapper -->
+      <div id="wrapper">
+         <div id="content" class="content"></div>
+         <div id="js-help-sidebar" class="sidebar-shell">
+            <div class="sidebar-module">
+               <ul class="subgroup" id="main-menu">
+                  <li>
+                     <h3>
+                        <a>Loading...</a>
+                     </h3>
+                  </li>
+               </ul>
+            </div>
+            <!-- /sidebar-module -->
+         </div>
+         <!-- /sidebar-shell -->
+      </div>
+   </body>
 </html>
