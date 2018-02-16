@@ -195,6 +195,7 @@
       <% } %>
    </script>
    <script type="text/template" id="main-menu-template">
+      <li>
       <h3><a href="#">Files</a></h3>
       <ul>
       <% _.each(files, function(file_data, file_name) { %>
@@ -203,6 +204,8 @@
       </li>
       <% }) %>
       </ul>
+      </li>
+      <li>
       <h3><a href="#">Structs</a></h3>
       <ul>
       <% _.each(structs, function(struct_data, struct_name) { %>
@@ -211,6 +214,8 @@
       </li>
       <% }) %>
       </ul>
+      </li>
+      <li>
       <h3><a href="#">Enums</a></h3>
       <ul>
       <% _.each(enums, function(enum_data, enum_name) { %>
@@ -219,6 +224,7 @@
       </li>
       <% }) %>
       </ul>
+      </li>
    </script>
    <script type="text/template" id="search-template">
       <h1>Search Results</h1>
