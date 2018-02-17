@@ -443,6 +443,7 @@ $(function () {
       "enum/:enumName": "enum",
       "function/:functionName": "function",
       "variable/:variable": "variable",
+      "address/:address": "address",
       "search/:query": "search",
     },
     index: function () {
@@ -477,6 +478,20 @@ $(function () {
       var view = new varView ({ model: model })
       this.mainView.setActive(view)
     },
+
+    address: function (address) {
+      var data = this.dataModel.get ('data')
+      var info = data['addresses'][address]
+      switch (info.type) {
+        case 'variable':
+          this.variable (info.name)
+          break;
+        case 'function':
+          this.function (info.name)
+          break;
+      }
+    },
+
 
     search: function(query) {
       var view = new SearchView({collection: this.search})

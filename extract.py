@@ -104,6 +104,7 @@ def extract_function(data, node):
 		explanation = []
 		for line in comment_to_lines (comment):
 			if extract_by_pattern(line, info, 'address', 'address:? (.*)'):
+				data['addresses'][info['address']] = {'type': 'function', 'name': node.spelling}
 				continue
 			if extract_by_pattern(line, info, 'psx_ref', 'PSX ref:? (.*)'):
 				continue
@@ -203,6 +204,7 @@ def extract_var (data, node):
 		explanation = []
 		for line in comment_to_lines (comment):
 			if extract_by_pattern(line, info, 'address', 'address:? (.*)'):
+				data['addresses'][info['address']] = {'type': 'variable', 'name': node.spelling}
 				continue
 			if extract_by_pattern(line, info, 'psx_ref', 'PSX ref:? (.*)'):
 				continue
