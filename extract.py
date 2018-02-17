@@ -9,6 +9,7 @@ import json
 import multiprocessing
 from collections import *
 import copy
+from lib.idc_backend import *
 
 import sys
 
@@ -299,6 +300,7 @@ if __name__ == '__main__':
 	parser.add_argument('--args',  dest='args', action="store", help='Arguments for clang')
 	parser.add_argument('--github-root', dest='github_root', action="store", help='GitHub root used for links')
 	parser.add_argument('--github-sha1', dest='github_sha1', action="store", help='GitHub revision sha1. Used for permanent links')
+	parser.add_argument('--idc-path', dest='idc_path', action="store", help='Also create .idc script based on sources')
 	parser.add_argument('target_path', action="store", help='Target path')
 	options = parser.parse_args()
 
@@ -331,3 +333,6 @@ if __name__ == '__main__':
 	os.makedirs (os.path.dirname (target_path), exist_ok=True)
 	json.dump (data, open (target_path, "w"), cls=SetEncoder)
 	print ('{} updated successfully!'.format (target_path))
+
+	if options.idc_path:
+		write_idc (data, options.idc_path)
