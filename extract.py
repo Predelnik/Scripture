@@ -1,4 +1,4 @@
-##!/usr/bin/env python3
+#!/usr/bin/env python3
 from clang.cindex import *
 import clang.cindex
 import argparse
