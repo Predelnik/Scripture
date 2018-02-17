@@ -1,0 +1,4 @@
+# fix the next line for your notes location
+# notes_path=~/devel/notes
+
+python `dirname "$0"`/extract.py --args="-I$notes_path" "$notes_path" --github-root="https://github.com/sanctuary/notes/blob/" --github-sha1="`(cd $notes_path && git rev-parse HEAD)`"

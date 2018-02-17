@@ -10,7 +10,6 @@ pip install -r requirements.txt
 ## Usage 
 
 #### Regeneration
-```
-extract.py --args="-I$notes_dir" "$notes_dir" --github-root="https://github.com/sanctuary/notes/blob/"
-```
-Then copy the contents of the `site` directory to repo which is on `gh-pages` branch and push
+Copy `extract.sh.sample` as `extract.sh` and fix path to notes inside it. Then run `extract.sh`
+
+Then copy the contents of the `site` directory to repo which is checked out to `gh-pages` branch and push manually, or also add it to extraction script.
