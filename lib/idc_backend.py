@@ -22,7 +22,8 @@ def write_structs (data, fp):
 		fp.write ('id = get_struc_id ("{}");\n'.format (name))
 		fp.write ('if (id != -1)\n')
 		fp.write ('del_struc(id);\n')
-		fp.write ('parse_decl("{}", 0);\n'.format (struct_data.text))
+		fp.write ('parse_decls("{}", 0);\n'.format (struct_data['text'].replace ('\n', '\\n').replace ('\r', '\\r').replace ('"', '\\"')))
+		fp.write ('import_type(-1, "{}");'.format (name))
 		fp.write ('}\n')
 
 def write_enums (data, fp):
@@ -33,10 +34,10 @@ def write_enums (data, fp):
 		fp.write ('del_enum(id);\n')
 		# it's yet unclear how to make enum signed, but looks like in IDA 7.0 it doesn't affect anything anyway
 		fp.write ('id = add_enum (-1, "{}", {});\n'.format (name, 'FF_0NUMH' if 'bitflag' in enum_data else 'FF_0NUMD'))
-		if 'bitflag' in enum_data:
-			fp.write ('set_enum_bf (id, 1);\n')
 		for member in enum_data['members']:
 			fp.write ('add_enum_member (id, "{}", {}, -1);\n'.format (member['name'], member['value']))
+		if 'bitflag' in enum_data:
+			fp.write ('set_enum_bf (id, 1);\n')
 
 def write_funcs (data, fp):
 	for name, func_data in data['functions'].items():
@@ -44,12 +45,20 @@ def write_funcs (data, fp):
 			continue
 		fp.write ('set_name({}, "{}");\n'.format (func_data['address'], name))
 		fp.write ('apply_type ({}, "{}", TINFO_DEFINITE);\n'.format (func_data['address'], func_data['text']))
-	fp.write('}\n')
+
+def write_vars (data, fp):
+	for name, var_data in data['vars'].items():
+		if not 'address' in var_data:
+			continue
+		fp.write ('set_name({}, "{}");\n'.format (var_data['address'], name))
+		fp.write ('apply_type ({}, "{}", TINFO_DEFINITE);\n'.format (var_data['address'], var_data['text']))
 
 def write_idc (data, target_filename, src_path):
 	fp = open (target_filename, 'w')
 	write_header (fp)
 	fp.write ('auto id = -1;')
 	write_enums (data, fp)
-	fp.write ('parse_decls ("{}/enums.h", PT_FILE);\n'.format (src_path.replace ('\\', '/')))
+	write_structs (data, fp)
 	write_funcs(data, fp)
+	write_vars(data, fp)
+	fp.write('}\n')

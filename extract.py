@@ -220,7 +220,7 @@ def extract_var (data, node):
 	return data['vars'][node.spelling]
 
 def extract(data, node, filepath, short_filename, full_filename):
-	fp = open (full_filename, 'r')
+	fp = open (full_filename, 'rb')
 	if str (node.location.file) == filepath: # not parsing cursors from other headers
 		info = None
 		if node.kind == CursorKind.FUNCTION_DECL:
@@ -262,7 +262,7 @@ def extract(data, node, filepath, short_filename, full_filename):
 			info['full_file_name'] = full_filename
 			info['line'] = node.extent.start.line
 			fp.seek (node.extent.start.offset)
-			info['text'] = fp.read (node.extent.end.offset - node.extent.start.offset)
+			info['text'] = fp.read (node.extent.end.offset - node.extent.start.offset + 1).decode ('utf-8')
 			return
 	for child in node.get_children():
 		extract(data, child, filepath, short_filename, full_filename)
