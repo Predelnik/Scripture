@@ -12,7 +12,7 @@ $(function () {
         return match[1] + ' (*) (' + match.slice(2, firstUndef).join(', ') + ')'
     }
 
-    var usualPattern = /(const\s*)?([^\[\]\*\s]+)(?:\s*)(\**)(\[\d+\]*)?/g
+    var usualPattern = /(const\s*)?([^\[\]\*\s]+)(?:\s*)(\**)((?:\[\d+\])*)?/g
     var match = usualPattern.exec(typeName)
     var prefix = match[1] ? match[1] : ''
     var name = match[2]
