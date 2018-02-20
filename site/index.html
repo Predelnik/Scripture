@@ -197,7 +197,7 @@
       <li>
       <h3><a href="#">Files</a></h3>
       <ul>
-      <% _.each(files, function(file_data, file_name) { %>
+      <% _.each(_.sortBy (Object.keys (files)), function(file_name) { %>
       <li>
       <a href="#fileData/<%= file_name %>"><%= file_name %></a>
       </li>
@@ -207,7 +207,7 @@
       <li>
       <h3><a href="#">Structs</a></h3>
       <ul>
-      <% _.each(structs, function(struct_data, struct_name) { %>
+      <% _.each(_.sortBy (Object.keys (structs)), function(struct_name) { %>
       <li>
       <a href="#struct/<%= struct_name %>"><%= struct_name %></a>
       </li>
@@ -217,7 +217,7 @@
       <li>
       <h3><a href="#">Enums</a></h3>
       <ul>
-      <% _.each(enums, function(enum_data, enum_name) { %>
+      <% _.each(_.sortBy (Object.keys (enums)), function(enum_name) { %>
       <li>
       <a href="#enum/<%= enum_name %>"><%= enum_name %></a>
       </li>
