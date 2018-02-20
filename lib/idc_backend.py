@@ -43,6 +43,8 @@ def write_funcs (data, fp):
 	for name, func_data in data['functions'].items():
 		if not 'address' in func_data:
 			continue
+		fp.write ('addr = get_name_ea_simple ("{}");\n'.format (name))
+		fp.write ('if (addr != BADADDR) set_name (addr, "");\n')
 		fp.write ('set_name({}, "{}");\n'.format (func_data['address'], name))
 		fp.write ('apply_type ({}, "{}", TINFO_DEFINITE);\n'.format (func_data['address'], func_data['text']))
 
@@ -50,13 +52,16 @@ def write_vars (data, fp):
 	for name, var_data in data['vars'].items():
 		if not 'address' in var_data:
 			continue
+		fp.write ('addr = get_name_ea_simple ("{}");\n'.format (name))
+		fp.write ('if (addr != BADADDR) set_name (addr, "");\n')
 		fp.write ('set_name({}, "{}");\n'.format (var_data['address'], name))
 		fp.write ('apply_type ({}, "{}", TINFO_DEFINITE);\n'.format (var_data['address'], var_data['text']))
 
 def write_idc (data, target_filename, src_path):
 	fp = open (target_filename, 'w')
 	write_header (fp)
-	fp.write ('auto id = -1;')
+	fp.write ('auto id = -1;\n')
+	fp.write ('auto addr = -1;\n')
 	write_enums (data, fp)
 	write_structs (data, fp)
 	write_funcs(data, fp)
