@@ -309,6 +309,7 @@ if __name__ == '__main__':
 
 	file_name_list = []
 	args = options.args.split (' ') if options.args else None
+	just_regenerate_idc = False # to simplify debugging IDC generation
 
 	for root, dirnames, filenames in os.walk(options.target_path):
 		for filename in filenames:
@@ -317,25 +318,30 @@ if __name__ == '__main__':
 			full_path = os.path.join (root, filename)
 			file_name_list.append ({'full_path': full_path, 'short_filename' : filename, 'full_filename' : os.path.relpath (full_path, options.target_path), 'args' : args} )
 
-	pool = multiprocessing.Pool ()
-	#results = list (map(extract_file, file_name_list))
-	results = list (pool.map(extract_file, file_name_list))
 	data = {}
-	for r in results:
-		merge_to_dict (data, r)
-	structs = data['structs']
-	#removing possible alien structs referenced
-	for name in list (structs.keys ()):
-		if not 'extracted' in structs[name]:
-			del structs[name]
-	if options.github_root:
-		data['github_root'] = options.github_root
-	if options.github_sha1:
-		data['github_sha1'] = options.github_sha1
+	if not just_regenerate_idc:
+		pool = multiprocessing.Pool ()
+		#results = list (map(extract_file, file_name_list))
+		results = list (pool.map(extract_file, file_name_list))
+		for r in results:
+			merge_to_dict (data, r)
+		structs = data['structs']
+		#removing possible alien structs referenced
+		for name in list (structs.keys ()):
+			if not 'extracted' in structs[name]:
+				del structs[name]
+		if options.github_root:
+			data['github_root'] = options.github_root
+		if options.github_sha1:
+			data['github_sha1'] = options.github_sha1
+
 	target_path = os.path.join (os.path.dirname(os.path.realpath(__file__)), 'site/data/data.json')
 	os.makedirs (os.path.dirname (target_path), exist_ok=True)
-	json.dump (data, open (target_path, "w"), cls=SetEncoder)
+	if not just_regenerate_idc:
+		json.dump (data, open (target_path, "w"), cls=SetEncoder)
+	else:
+		data = json.load (open (target_path))
 	print ('{} updated successfully!'.format (target_path))
 
 	if options.idc_path:
-		write_idc (data, options.idc_path)
+		write_idc (data, options.idc_path, options.target_path)
