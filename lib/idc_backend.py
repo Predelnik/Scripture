@@ -36,7 +36,7 @@ def write_header (fp):
 
 def member_flags_id(data, member):
 	type = member['type']
-	size = int (member['size'], 16)
+	size = int (member['size'])
 	if re.match (r'([a-zA-z]*)\s*\(\*\)\((?:([a-zA-z\*]*),\s*)*([a-zA-z\*]*)?\)', type):
 		return 'FF_0OFF | FF_DWORD', -1
 	m = re.match (r'([a-zA-z0-9_\*]*)\s*(?:\[.*\])*', type)
@@ -50,16 +50,16 @@ def member_flags_id(data, member):
 	if type in data['enums']:
 		flag = 'FF_DWORD'
 		if size == 2:
-			flag == 'FF_WORD'
+			flag = 'FF_WORD'
 		elif size == 1:
-			flag == 'FF_BYTE'
+			flag = 'FF_BYTE'
 		return 'FF_0ENUM | {}'.format (flag), 'get_enum ("{}")'.format (type)
 
-	if type in ['int8_t', 'uint8_t', 'bool8_t', 'BYTE']:
+	if type in ['int8_t', 'uint8_t', 'bool8_t', 'BYTE', 'char', 'unsigned char']:
 		return 'FF_BYTE', -1
 	if type in ['int16_t', 'uint16_t', 'bool16_t', 'WORD']:
 		return 'FF_WORD', -1
-	if type in ['int', 'int32_t', 'uint32_t', 'bool32_t', 'DWORD', 'uint', 'bool']: 
+	if type in ['int', 'int32_t', 'uint32_t', 'bool32_t', 'DWORD', 'uint', 'bool']:
 		return 'FF_DWORD', -1
 	return 'FF_0OFF | FF_DWORD', -1
 
