@@ -1,6 +1,6 @@
 $(function () {
 
-  var typeNameToHtml = function (typeName, structs, enums, varName = '') {
+  var typeNameToHtml = function (typeName, structs, enums, varName) {
     lastChar = typeName.charAt(typeName.length - 1)
     var funcPtrPatten = /([a-zA-z]*)\s*\(\*\)\((?:([a-zA-z\*]*),\s*)*([a-zA-z\*]*)?\)/g
     var match = funcPtrPatten.exec(typeName)
