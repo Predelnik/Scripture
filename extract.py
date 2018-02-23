@@ -109,6 +109,8 @@ def extract_function(data, node):
 				continue
 			if extract_by_pattern(line, info, 'psx_ref', 'PSX ref:? (.*)'):
 				continue
+			if extract_by_pattern(line, info, 'ordinal', 'ordinal:? (.*)'):
+				continue
 			if extract_by_pattern(line, info, 'psx_def', 'PSX def:? (.*)'):
 				continue
 			if line:

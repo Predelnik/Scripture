@@ -126,7 +126,8 @@
       <p>
       <table>
           <tr><td>File:</td><td><a href="#fileData/<%= data.short_file_name %>"><%= data.short_file_name %></a></td></tr>
-          <tr><td>Address:</td><td><a href="#address/<%= data.address %>"><%= data.address %></a></td></tr>
+          <% if (data.address) { %><tr><td>Address:</td><td><a href="#address/<%= data.address %>"><%= data.address %></a></td></tr> <% } %>
+          <% if (data.ordinal) { %><tr><td>Ordinal:</td><td><%= data.ordinal %></td></tr> <% } %>
           <% if (data.psx_ref) { %> <tr><td>PSX Ref:</td><td><%= data.psx_ref %> </td></tr> <% } %>
           <% if (data.psx_def) { %><tr><td>PSX Def:</td><td><%= data.psx_def %></td></tr> <% } %>
         </table>
@@ -157,8 +158,9 @@
       <h1>File `<%= fileName %>`</h1>
       <% if (functions.length > 0) { %>
       <h2 class="fileDataGroup">Functions:</h2>
-      <% _.each(_.sortBy (functions, function (func){ return func.data.address}), function(func) { %>
-        <h3><%= func.data.address %></h3>
+      <% _.each(_.sortBy (functions, function (func){ return [func.data.address, func.data.ordinal]}), function(func) { %>
+        <% if (func.data.address) { %><h3><%= func.data.address %></h3><% } %>
+        <% if (func.data.ordinal) { %><h3>Ordinal: <%= func.data.ordinal %></h3><% } %>
         <h4><%= func.signature %></h4>
       <% }) %>
       <% } %>
