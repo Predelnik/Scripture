@@ -63,20 +63,25 @@ def member_flags_id(data, member):
 		return 'FF_DWORD', -1
 	return 'FF_0OFF | FF_DWORD', -1
 
+def write_struct (data, name, struct_data, fp):
+	fp.write ('{\n')
+	write_name_cleanup (fp, name)
+	if not 'offset' in struct_data['members'][0]:
+		fp.write ('parse_decls ("{}", 0);\n'.format (struct_data['text'].replace ('\n', '\\n').replace ('\r', '\\r')))
+	else:
+		fp.write ('id = add_struc(-1, "{}", 0);\n'.format (name))
+		for member in struct_data['members']:
+			flags, id = member_flags_id (data, member)
+			fp.write ('add_struc_member (id, "{}", 0x{}, FF_DATA | {}, {}, {});\n'.format (member['name'], member['offset'], flags, id, member['size']))
+	fp.write ('import_type(-1, "{}");'.format (name))
+	fp.write ('}\n')
+
 def write_structs (data, fp):
-	for name, struct_data in sorted(list (data['structs'].items()), key=lambda t: t[1]['line']):
-		# Removing previously defined struct to avoid collision
-		fp.write ('{\n')
-		write_name_cleanup (fp, name)
-		if not 'offset' in struct_data['members'][0]:
-			fp.write ('parse_decls ("{}", 0);\n'.format (struct_data['text'].replace ('\n', '\\n').replace ('\r', '\\r')))
-		else:
-			fp.write ('id = add_struc(-1, "{}", 0);\n'.format (name))
-			for member in struct_data['members']:
-				flags, id = member_flags_id (data, member)
-				fp.write ('add_struc_member (id, "{}", 0x{}, FF_DATA | {}, {}, {});\n'.format (member['name'], member['offset'], flags, id, member['size']))
-		fp.write ('import_type(-1, "{}");'.format (name))
-		fp.write ('}\n')
+	for file_name in ['sha1.h', 'windows.h', 'structs.h']: # it's hard to determine correct order here in general case
+		for name, struct_data in sorted(list (data['structs'].items()), key=lambda t: t[1]['line']):
+			if struct_data['full_file_name'] != file_name:
+				continue
+			write_struct (data, name, struct_data, fp)
 
 def write_enums (data, fp):
 	for name, enum_data in sorted(list (data['enums'].items()), key=lambda t: t[1]['line']):
