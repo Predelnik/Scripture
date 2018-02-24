@@ -34,34 +34,55 @@ def write_header (fp):
 				write_name_cleanup (fp, source_type)
 				fp.write ('set_local_type (-1, "typedef {} {}", 0);\n'.format (dest_type, source_type))
 
-def member_flags_id(data, member):
+def check_flags (flags, size, extent, struct_name, member):
+	if size > 0:
+		member_size = int(member['size'])
+		if member_size != extent * size:
+			print ('Possible error with member {} of struct {}. member size({}) != extent({}) * size({})'.
+				format (member['name'], struct_name, member_size, extent, size))
+	if size == 1:
+		flags.append ('FF_BYTE')
+	elif size == 2:
+		flags.append ('FF_WORD')
+	elif size == 4:
+		flags.append ('FF_DWORD')
+	return flags
+
+def member_flags_id(data, struct_name, member):
 	type = member['type']
 	size = int (member['size'])
 	if re.match (r'([a-zA-z]*)\s*\(\*\)\((?:([a-zA-z\*]*),\s*)*([a-zA-z\*]*)?\)', type):
-		return 'FF_0OFF | FF_DWORD', -1
-	m = re.match (r'([a-zA-z0-9_\*]*)\s*(?:\[.*\])*', type)
+		return check_flags (['FF_0OFF'], 4, 1, struct_name, member), -1
+	m = re.match (r'([a-zA-z0-9_\*]*(?:\s*\*)?)\s*(?:\[(.*)\])*', type)
 	if not m:
 		return
 	type = m.group(1).strip ()
+	extent = int(m.group(2)) if m.group(2) else 1
 	if type.endswith ('*'):
-		return 'FF_OFFSET', 'get_struc_id ("{}")'.format (type[:-1])
+		# writing FF_0STRO crashes ida 7.0
+		return check_flags (['FF_0OFF'], 4, extent, struct_name, member), 'get_struc_id ("{}")'.format (type[:-1].strip ())
 	if type in data['structs']:
-		return 'FF_STRUCT', 'get_struc_id ("{}")'.format (type)
+		if 'size' in data['structs'][type]:
+			struct_size = int (data['structs'][type]['size'])
+			member_size = int(member['size'])
+			if member_size != extent * struct_size:
+				print ('Possible error with member {} of struct {}. member size({}) != extent({}) * size({})'.format (member['name'], struct_name, member_size, extent, struct_size))
+		return ['FF_STRUCT'], 'get_struc_id ("{}")'.format (type)
 	if type in data['enums']:
 		flag = 'FF_DWORD'
 		if size == 2:
 			flag = 'FF_WORD'
 		elif size == 1:
 			flag = 'FF_BYTE'
-		return 'FF_0ENUM | {}'.format (flag), 'get_enum ("{}")'.format (type)
+		return check_flags(['FF_0ENUM'], size, extent, struct_name, member), 'get_enum ("{}")'.format (type)
 
 	if type in ['int8_t', 'uint8_t', 'bool8_t', 'BYTE', 'char', 'unsigned char']:
-		return 'FF_BYTE', -1
+		return check_flags([], 1, extent, struct_name, member), -1
 	if type in ['int16_t', 'uint16_t', 'bool16_t', 'WORD']:
-		return 'FF_WORD', -1
+		return check_flags([], 2, extent, struct_name, member), -1
 	if type in ['int', 'int32_t', 'uint32_t', 'bool32_t', 'DWORD', 'uint', 'bool']:
-		return 'FF_DWORD', -1
-	return 'FF_0OFF | FF_DWORD', -1
+		return check_flags([], 4, extent, struct_name, member), -1
+	return check_flags (['FF_0OFF'], 4, extent, struct_name, member), -1
 
 def write_struct (data, name, struct_data, fp):
 	fp.write ('{\n')
@@ -71,8 +92,9 @@ def write_struct (data, name, struct_data, fp):
 	else:
 		fp.write ('id = add_struc(-1, "{}", 0);\n'.format (name))
 		for member in struct_data['members']:
-			flags, id = member_flags_id (data, member)
-			fp.write ('add_struc_member (id, "{}", 0x{}, FF_DATA | {}, {}, {});\n'.format (member['name'], member['offset'], flags, id, member['size']))
+			flags, id = member_flags_id (data, name, member)
+			size = 0
+			fp.write ('add_struc_member (id, "{}", 0x{}, FF_DATA | {}, {}, {});\n'.format (member['name'], member['offset'], ' | '.join (flags), id, member['size']))
 	fp.write ('import_type(-1, "{}");'.format (name))
 	fp.write ('}\n')
 
