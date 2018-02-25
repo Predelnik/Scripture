@@ -58,9 +58,8 @@ def member_flags_id(data, struct_name, member):
 		return
 	type = m.group(1).strip ()
 	extent = int(m.group(2)) if m.group(2) else 1
-	if type.endswith ('*'):
-		# writing FF_0STRO crashes ida 7.0
-		return check_flags (['FF_0OFF'], 4, extent, struct_name, member), 'get_struc_id ("{}")'.format (type[:-1].strip ())
+	if type.endswith ('*') and type[:-1].strip () in data['structs']:
+		return check_flags (['FF_0STRO'], 4, extent, struct_name, member), 'get_struc_id ("{}")'.format (type[:-1].strip ())
 	if type in data['structs']:
 		if 'size' in data['structs'][type]:
 			struct_size = int (data['structs'][type]['size'])
