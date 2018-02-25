@@ -68,11 +68,6 @@ def member_flags_id(data, struct_name, member):
 				print ('Possible error with member {} of struct {}. member size({}) != extent({}) * size({})'.format (member['name'], struct_name, member_size, extent, struct_size))
 		return ['FF_STRUCT'], 'get_struc_id ("{}")'.format (type)
 	if type in data['enums']:
-		flag = 'FF_DWORD'
-		if size == 2:
-			flag = 'FF_WORD'
-		elif size == 1:
-			flag = 'FF_BYTE'
 		return check_flags(['FF_0ENUM'], size, extent, struct_name, member), 'get_enum ("{}")'.format (type)
 
 	if type in ['int8_t', 'uint8_t', 'bool8_t', 'BYTE', 'char', 'unsigned char']:
@@ -94,6 +89,10 @@ def write_struct (data, name, struct_data, fp):
 			flags, id = member_flags_id (data, name, member)
 			size = 0
 			fp.write ('add_struc_member (id, "{}", 0x{}, FF_DATA | {}, {}, {});\n'.format (member['name'], member['offset'], ' | '.join (flags), id, member['size']))
+			# Set type is bad for enums because by our definition they may have various width in different structures but IDA will reset size to 4 in this case
+			# But SetType does nothing for such members anyway
+			if not 'FF_0ENUM' in flags:
+				fp.write ('SetType (get_member_id (id, 0x{}), "{}");\n'.format (member['offset'], member['type'])) # non-trivial command but ida itself does it (in generated IDC)
 	fp.write ('import_type(-1, "{}");'.format (name))
 	fp.write ('}\n')
 
