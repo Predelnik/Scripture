@@ -78,11 +78,14 @@ def member_flags_id(data, struct_name, member):
 		return check_flags([], 4, extent, struct_name, member), -1
 	return check_flags (['FF_0OFF'], 4, extent, struct_name, member), -1
 
+def stringify (str):
+	return '"{}"'.format (str.replace ('\n', '\\n').replace ('\r', '\\r').replace ('"', '\\"'))
+
 def write_struct (data, name, struct_data, fp):
 	fp.write ('{\n')
 	write_name_cleanup (fp, name)
 	if not 'offset' in struct_data['members'][0]:
-		fp.write ('parse_decls ("{}", 0);\n'.format (struct_data['text'].replace ('\n', '\\n').replace ('\r', '\\r')))
+		fp.write ('parse_decls ({}, 0);\n'.format (stringify (struct_data['text'])))
 	else:
 		fp.write ('id = add_struc(-1, "{}", 0);\n'.format (name))
 		for member in struct_data['members']:
@@ -120,6 +123,7 @@ def write_funcs (data, fp):
 			continue
 		write_name_cleanup (fp, name)
 		fp.write ('set_name({}, "{}");\n'.format (func_data['address'], name))
+		fp.write ('set_func_cmt({}, {}, 0);\n'.format (func_data['address'], stringify (func_data['explanation'])))
 		fp.write ('apply_type ({}, "{}", TINFO_DEFINITE);\n'.format (func_data['address'], func_data['text']))
 
 def write_vars (data, fp):
@@ -128,6 +132,7 @@ def write_vars (data, fp):
 			continue
 		write_name_cleanup (fp, name)
 		fp.write ('set_name({}, "{}");\n'.format (var_data['address'], name))
+		fp.write ('set_cmt({}, {}, 0);\n'.format (var_data['address'], stringify (var_data['explanation'])))
 		fp.write ('apply_type ({}, "{}", TINFO_DEFINITE);\n'.format (var_data['address'], var_data['text']))
 
 def write_idc (data, target_filename, src_path):
