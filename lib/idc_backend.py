@@ -1,19 +1,21 @@
 import re
 
-def write_name_cleanup (fp, name): # cleanup all possible name usages
-	# used for linear address (variable/func)
-	# TODO: make it function in ids instead of generating ton of code
-	fp.write ('addr = get_name_ea_simple ("{}");\n'.format (name))
-	fp.write ('if (addr != BADADDR) set_name (addr, "");\n')
-	# used for custom data type (local types)
-	fp.write ('id = find_custom_data_type("{}");\n'.format (name))
-	fp.write ('if (id != -1) set_local_type (-1, "", 0);\n'.format (name))
-	# used for struct name
-	fp.write ('id = get_struc_id ("{}");\n'.format (name))
-	fp.write ('if (id != -1) del_struc(id);\n')
-	# used for enum name
-	fp.write ('id = get_enum ("{}");\n'.format (name))
-	fp.write ('if (id != -1) del_enum(id);\n')
+def write_name_cleanup_decl (fp):
+	fp.write ('''
+	static cleanup(name) {
+	auto addr = get_name_ea_simple (name);
+	if (addr != BADADDR) set_name (addr, "");
+	auto id = find_custom_data_type (name);
+	if (id != -1) set_local_type (-1, "", 0);
+	id = get_struc_id ("{}");
+	if (id != -1) del_struc(id);
+	id = get_enum ("{}");
+	if (id != -1) del_enum(id);
+}
+	''')
+
+def write_name_cleanup (fp, name):
+	fp.write ('cleanup("{}");'.format (name));
 
 # data is dict specified by extract.py (unstable)
 def write_header (fp):
@@ -21,6 +23,9 @@ def write_header (fp):
 	fp.write ("// Warning: script will aggressively change name of the functions and redefine structs if there's name collision. Use with care.\n")
 	fp.write ('\n')
 	fp.write ('#include <idc.idc>\n')
+	fp.write ('\n')
+	write_name_cleanup_decl (fp)
+	fp.write ('\n')
 	fp.write ('static main() {\n')
 	fp.write ('auto id = -1;\n')
 	fp.write ('auto addr = -1;\n')
