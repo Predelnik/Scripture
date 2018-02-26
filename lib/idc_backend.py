@@ -24,6 +24,7 @@ def write_header (fp):
 	fp.write ('static main() {\n')
 	fp.write ('auto id = -1;\n')
 	fp.write ('auto addr = -1;\n')
+	fp.write ('auto member_id = -1;\n')
 	for bits in ['8', '16', '32']:
 		for prefix in [('u', 'unsigned '), ('', '')]:
 			for body in ['int', 'bool']:
@@ -88,10 +89,14 @@ def write_struct (data, name, struct_data, fp):
 		fp.write ('parse_decls ({}, 0);\n'.format (stringify (struct_data['text'])))
 	else:
 		fp.write ('id = add_struc(-1, "{}", 0);\n'.format (name))
+		if 'explanation' in struct_data:
+			fp.write ('set_struc_cmt(id, {}, 0);\n'.format (stringify (struct_data['explanation'])))
 		for member in struct_data['members']:
 			flags, id = member_flags_id (data, name, member)
 			size = 0
 			fp.write ('add_struc_member (id, "{}", 0x{}, FF_DATA | {}, {}, {});\n'.format (member['name'], member['offset'], ' | '.join (flags), id, member['size']))
+			if member['explanation']:
+				fp.write ('set_member_cmt (id, 0x{}, {}, 0);'.format (member['offset'], stringify (member['explanation'])))
 			# Set type is bad for enums because by our definition they may have various width in different structures but IDA will reset size to 4 in this case
 			# But SetType does nothing for such members anyway
 			if not 'FF_0ENUM' in flags:
@@ -112,8 +117,12 @@ def write_enums (data, fp):
 		write_name_cleanup (fp, name)
 		# it's yet unclear how to make enum signed, but looks like in IDA 7.0 it doesn't affect anything anyway
 		fp.write ('id = add_enum (-1, "{}", {});\n'.format (name, 'FF_0NUMH' if 'bitflag' in enum_data else 'FF_0NUMD'))
+		if 'explanation' in enum_data:
+			fp.write ('set_enum_cmt (id, {}, 0);\n'.format (stringify (enum_data['explanation'])))
 		for member in enum_data['members']:
 			fp.write ('add_enum_member (id, "{}", {}, -1);\n'.format (member['name'], member['value']))
+			if 'explanation' in member:
+				fp.write ('set_enum_member_cmt (get_enum_member_by_name ("{}"), {}, 0);'.format (member['name'], stringify (member['explanation'])))
 		if 'bitflag' in enum_data:
 			fp.write ('set_enum_bf (id, 1);\n')
 
