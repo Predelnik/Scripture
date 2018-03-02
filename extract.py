@@ -318,7 +318,7 @@ if __name__ == '__main__':
 			if not filename.endswith (('.cpp', '.h')):
 				continue
 			full_path = os.path.join (root, filename)
-			file_name_list.append ({'full_path': full_path, 'short_filename' : filename, 'full_filename' : os.path.relpath (full_path, options.target_path), 'args' : args} )
+			file_name_list.append ({'full_path': full_path, 'short_filename' : filename, 'full_filename' : os.path.relpath (full_path, options.target_path).replace ('\\', '/'), 'args' : args} )
 
 	data = {}
 	if not just_regenerate_idc:
