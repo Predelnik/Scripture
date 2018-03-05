@@ -3,6 +3,6 @@
 # fix the next line for your notes location
 # notes_path=~/devel/notes
 
-scripture_dir=$(dirname `realpath "$0"`)
+scripture_dir=$(dirname `readlink -f "$0"`)
 cd ${notes_path}
-python ${scripture_dir}/extract.py --args="-I$notes_path" "$notes_path" --github-root="https://github.com/sanctuary/notes/blob/" --github-sha1="`git rev-parse HEAD`"
+python3 ${scripture_dir}/extract.py --args="-I$notes_path" "$notes_path" --github-root="https://github.com/sanctuary/notes/blob/" --github-sha1="`git rev-parse HEAD`"
