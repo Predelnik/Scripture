@@ -274,6 +274,13 @@ def extract_file (params):
 	data = defaultdict (dict_gen)
 	index = clang.cindex.Index.create()
 	tu = index.parse(params['full_path'], params['args'], options = TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD )
+	parse_error = False
+	for diagnostic in tu.diagnostics:
+		print ('{} at {}'.format (diagnostic.spelling, diagnostic.location))
+		if diagnostic.severity >= Diagnostic.Error:
+			parse_error = True
+	if parse_error:
+		raise Exception ('Parsing error in one of the files. See above')
 	extract (data, tu.cursor, params['full_path'], params['short_filename'], params['full_filename'])
 	return data
 
